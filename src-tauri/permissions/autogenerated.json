@@ -1,0 +1,9 @@
+{
+  "identifier": "allow-commands",
+  "description": "Allow all custom commands",
+  "commands": [
+    "get_projects",
+    "get_tasks",
+    "get_current_user"
+  ]
+}
