@@ -3,7 +3,10 @@
   "description": "Allow all custom commands",
   "commands": [
     "get_projects",
+    "create_project",
     "get_tasks",
+    "create_task",
+    "update_task_status",
     "get_current_user"
   ]
 }

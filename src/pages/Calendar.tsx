@@ -1,81 +1,68 @@
 import React from 'react';
+import { useAppContext } from '../context/AppContext';
 
 const Calendar: React.FC = () => {
+  useAppContext();
+
+  // Static for Oct 2023 to match design
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+  const startOffset = 6; // Starts on Sunday for layout balance in design
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <h1 className="font-h1-display text-4xl font-bold text-on-background">Ottobre 2023</h1>
-          <div className="flex bg-white/50 p-1 rounded-xl border border-white/40">
-            <button className="p-2 hover:bg-white rounded-lg transition-colors"><span className="material-symbols-outlined">chevron_left</span></button>
-            <button className="px-4 py-2 font-bold hover:bg-white rounded-lg transition-colors">Oggi</button>
-            <button className="p-2 hover:bg-white rounded-lg transition-colors"><span className="material-symbols-outlined">chevron_right</span></button>
-          </div>
+    <div className="flex flex-col h-full animate-in fade-in duration-500">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-bold text-on-background tracking-tight">Ottobre 2023</h1>
+          <p className="text-lg text-slate-500 mt-1">Benvenuto nella tua pianificazione mensile.</p>
         </div>
-        <div className="flex bg-white/50 p-1 rounded-xl border border-white/40 shadow-sm">
-          <button className="px-6 py-2 bg-white shadow-sm rounded-lg text-primary font-bold">Mese</button>
-          <button className="px-6 py-2 hover:bg-white/60 rounded-lg text-slate-500 transition-colors">Settimana</button>
-          <button className="px-6 py-2 hover:bg-white/60 rounded-lg text-slate-500 transition-colors">Giorno</button>
+        <div className="flex items-center gap-2 p-1 bg-white/40 rounded-full border border-white/20">
+          <button className="p-2 hover:bg-white/60 rounded-full transition-colors"><span className="material-symbols-outlined">chevron_left</span></button>
+          <button className="px-4 py-1 font-bold text-sm hover:bg-white/60 rounded-full">Oggi</button>
+          <button className="p-2 hover:bg-white/60 rounded-full transition-colors"><span className="material-symbols-outlined">chevron_right</span></button>
         </div>
       </div>
 
-      <div className="glass-panel rounded-3xl overflow-hidden border border-white/40 shadow-lg">
-        <div className="grid grid-cols-7 border-b border-white/30 bg-white/30">
-          {weekDays.map((day) => (
-            <div key={day} className="p-4 text-center text-xs font-bold text-slate-500 uppercase tracking-widest">{day}</div>
+      <div className="flex-1 glass-panel rounded-[2rem] p-6 shadow-sm overflow-hidden flex flex-col">
+        <div className="grid grid-cols-7 border-b border-white/20 mb-4 pb-4">
+          {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => (
+            <div key={d} className="text-center font-bold text-slate-400 text-[10px] uppercase tracking-widest">{d}</div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 grid-rows-5 min-h-[600px]">
-          {/* Mock previous month days */}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={`prev-${i}`} className="border-r border-b border-white/30 p-2 text-slate-400 opacity-50 bg-slate-50/20">
-              {25 + i}
+        <div className="grid grid-cols-7 grid-rows-5 flex-1 gap-px bg-white/10 rounded-xl overflow-hidden border border-white/10">
+          {Array.from({ length: startOffset }).map((_, i) => (
+            <div key={`empty-${i}`} className="bg-white/10 p-3 opacity-30">
+              <span className="text-sm font-semibold text-slate-400">{25 + i}</span>
             </div>
           ))}
+          {days.map(d => {
+            const isToday = d === 12;
 
-          {days.map((day) => (
-            <div
-              key={day}
-              className={`border-r border-b border-white/30 p-2 group hover:bg-white/40 transition-colors relative ${
-                day === 12 ? 'bg-indigo-50/40 border-indigo-200/50' : ''
-              }`}
-            >
-              <span className={`text-sm font-medium mb-2 block w-7 h-7 flex items-center justify-center rounded-full ${
-                day === 12 ? 'bg-primary text-white font-bold' : ''
-              }`}>
-                {day}
-              </span>
-
-              {day === 2 && (
+            return (
+              <div
+                key={d}
+                className={`p-3 transition-all flex flex-col gap-2 relative group cursor-pointer ${
+                  isToday ? 'bg-blue-50/50 ring-2 ring-inset ring-blue-500/20' : 'bg-white/30 hover:bg-white/50'
+                }`}
+              >
+                <span className={`text-sm font-bold ${isToday ? 'text-blue-600' : 'text-slate-600'}`}>{d}</span>
+                {isToday && <span className="absolute top-2 right-2 w-2 h-2 bg-blue-600 rounded-full"></span>}
                 <div className="space-y-1">
-                  <div className="px-2 py-1 bg-primary-container text-white text-[10px] rounded-full truncate">Brainstorming App</div>
-                  <div className="px-2 py-1 bg-secondary-container text-white text-[10px] rounded-full truncate">Review Design</div>
+                  {d === 2 && <div className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded-full border border-blue-200 truncate">Sprint Planning</div>}
+                  {d === 4 && <div className="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold rounded-full border border-red-200 truncate">Deadline Progetto X</div>}
+                  {d === 6 && (
+                    <>
+                      <div className="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-bold rounded-full truncate">Meeting Team</div>
+                      <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[9px] font-bold rounded-full border border-yellow-200 truncate">Review Codice</div>
+                    </>
+                  )}
+                  {d === 12 && (
+                    <div className="px-2 py-0.5 bg-indigo-600 text-white text-[9px] font-bold rounded-full truncate">Lancio Beta</div>
+                  )}
                 </div>
-              )}
-
-              {day === 12 && (
-                <div className="space-y-1">
-                  <div className="px-2 py-1 bg-tertiary-container text-white text-[10px] rounded-full truncate">Sprint Planning</div>
-                  <div className="px-2 py-1 bg-error text-white text-[10px] rounded-full truncate">Fix Critical Bugs</div>
-                </div>
-              )}
-
-              {day === 17 && (
-                <div className="px-2 py-1 bg-primary-fixed-dim text-on-primary-fixed-variant text-[10px] rounded-full truncate border border-primary/10">Kick-off Q4</div>
-              )}
-            </div>
-          ))}
-
-          {/* Fill remaining cells */}
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={`next-${i}`} className="border-r border-white/30 p-2 text-slate-400 opacity-50 bg-slate-50/20">
-              {i + 1}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

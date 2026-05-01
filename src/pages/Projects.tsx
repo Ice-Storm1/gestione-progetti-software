@@ -1,40 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { MOCK_PROJECTS } from '../mockData';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  progress: number;
-  status: string;
-  category: string;
-  started_at: string;
-  members_count: number;
-}
+import React from 'react';
+import { useAppContext } from '../context/AppContext';
 
 const Projects: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
-
-  useEffect(() => {
-    invoke<Project[]>('get_projects')
-      .then(setProjects)
-      .catch((err) => {
-        console.error("Backend not available, using mock data", err);
-      });
-  }, []);
+  const { projects } = useAppContext();
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="font-h1-display text-4xl font-bold text-on-background">Progetti</h1>
-          <p className="text-on-surface-variant mt-1 text-lg">Gestisci e monitora l'avanzamento dei tuoi workspace attivi.</p>
+          <h1 className="text-4xl font-bold text-on-background tracking-tight">Progetti</h1>
+          <p className="text-lg text-slate-500 mt-1">Gestisci e monitora l'avanzamento dei tuoi workspace attivi.</p>
         </div>
-        <button className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:translate-y-[-2px] transition-all flex items-center gap-2 active:scale-95">
-          <span className="material-symbols-outlined text-lg">add</span>
-          Nuovo Progetto
-        </button>
       </div>
 
       <div className="glass-panel inner-glow p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4">
@@ -52,10 +28,6 @@ const Projects: React.FC = () => {
               <span className="material-symbols-outlined text-[20px]">view_list</span>
             </button>
           </div>
-          <button className="glass-panel px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-white/80 transition-all">
-            <span className="material-symbols-outlined text-lg">filter_list</span>
-            Ordina per
-          </button>
         </div>
       </div>
 
@@ -104,15 +76,6 @@ const Projects: React.FC = () => {
             </div>
           </div>
         ))}
-        <div className="border-2 border-dashed border-slate-200 rounded-[24px] p-6 flex flex-col items-center justify-center gap-4 text-center group hover:border-indigo-400 hover:bg-indigo-50/20 transition-all cursor-pointer">
-          <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
-            <span className="material-symbols-outlined text-3xl">add_circle</span>
-          </div>
-          <div>
-            <p className="font-bold text-slate-700">Nuovo Workspace</p>
-            <p className="text-xs text-slate-400 mt-1">Crea un nuovo ambiente per i tuoi progetti futuri.</p>
-          </div>
-        </div>
       </div>
     </div>
   );
