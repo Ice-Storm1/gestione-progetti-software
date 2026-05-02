@@ -16,10 +16,11 @@ const TopBar: React.FC<TopBarProps> = () => {
   const getPageTitle = () => {
     if (location.pathname === '/dashboard') return 'Dashboard';
     if (location.pathname === '/projects') return 'Progetti';
-    if (location.pathname === '/tasks') return 'Tasks';
+    if (location.pathname === '/kanban') return 'Tasks';
     if (location.pathname === '/calendar') return 'Calendario';
     if (location.pathname === '/settings') return 'Impostazioni';
     if (location.pathname === '/notifications') return 'Notifiche';
+    if (location.pathname === '/support') return 'Supporto';
     if (location.pathname.includes('/projects/')) return 'Dettaglio Progetto';
 
     const path = location.pathname.split('/').pop() || 'Dashboard';
@@ -56,8 +57,8 @@ const TopBar: React.FC<TopBarProps> = () => {
 
           <div className="flex items-center gap-3 border-l border-outline-variant/30 pl-4">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-on-surface leading-tight">{user?.name || 'Guest'}</p>
-              <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">{user?.role || 'User'}</p>
+              <p className="text-xs font-black text-on-surface leading-tight">{user?.name || 'Francesco'}</p>
+              <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">{user?.role || 'Project Lead'}</p>
             </div>
             <Link to="/settings" className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm hover:ring-4 hover:ring-primary/10 transition-all">
               <img

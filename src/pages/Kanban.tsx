@@ -8,95 +8,91 @@ interface KanbanProps {
 }
 
 const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
-  const { tasks, updateTaskStatus } = useAppContext();
+  const { tasks } = useAppContext();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-
-  const columns = [
-    { id: 'Idea', label: 'Idea', color: 'bg-slate-400' },
-    { id: 'Pianificazione', label: 'Pianificazione', color: 'bg-indigo-400' },
-    { id: 'In corso', label: 'In corso', color: 'bg-amber-500' },
-    { id: 'In revisione', label: 'In revisione', color: 'bg-purple-500' },
-    { id: 'Completati', label: 'Completati', color: 'bg-emerald-500' },
-  ];
 
   const projectTasks = projectId
     ? tasks.filter(t => t.project_id === projectId)
     : tasks;
 
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('taskId', id);
-  };
-
-  const handleDrop = async (e: React.DragEvent, status: string) => {
-    const taskId = e.dataTransfer.getData('taskId');
-    await updateTaskStatus(taskId, status);
-  };
-
-  const allowDrop = (e: React.DragEvent) => {
-    e.preventDefault();
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'Alta': return 'text-rose-600 bg-rose-50 dark:bg-rose-900/30 dark:text-rose-400 border-rose-100 dark:border-rose-800';
+      case 'Media': return 'text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 border-amber-100 dark:border-amber-800';
+      default: return 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800';
+    }
   };
 
   return (
-    <div className={`flex gap-6 overflow-x-auto pb-6 min-h-[600px] ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
-      {columns.map(col => (
-        <div
-          key={col.id}
-          onDrop={(e) => handleDrop(e, col.id)}
-          onDragOver={allowDrop}
-          className="flex-shrink-0 w-80 flex flex-col gap-4 bg-surface/30 dark:bg-slate-800/30 p-4 rounded-3xl border border-outline-variant/10 shadow-inner"
-        >
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${col.color}`}></span>
-              <h3 className="text-xs font-black uppercase tracking-widest text-on-surface-variant">{col.label}</h3>
-              <span className="bg-surface shadow-sm px-2 py-0.5 rounded text-[10px] font-black text-primary">
-                {projectTasks.filter(t => t.status === col.id).length}
-              </span>
-            </div>
-            <button className="material-symbols-outlined text-outline hover:text-primary transition-colors text-sm">more_horiz</button>
-          </div>
-
-          <div className="flex-1 flex flex-col gap-4">
-            {projectTasks.filter(t => t.status === col.id).map(task => (
-              <div
-                key={task.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, task.id)}
-                onClick={() => setEditingTask(task)}
-                className="glass-panel inner-glow rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all cursor-grab active:cursor-grabbing border border-outline-variant/10 bg-surface dark:bg-slate-800 group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter border ${
-                    task.priority === 'Alta' ? 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/30' :
-                    task.priority === 'Media' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30' :
-                    'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30'
-                  }`}>
-                    {task.priority}
-                  </span>
-                </div>
-                <h4 className="text-base font-black text-on-surface mb-3 line-clamp-2">{task.title}</h4>
-                <div className="flex items-center justify-between mt-auto">
-                  <div className="flex items-center gap-1.5 text-on-surface-variant">
-                    <span className="material-symbols-outlined text-sm">calendar_today</span>
-                    <span className="text-[10px] font-bold">{task.due_date}</span>
-                  </div>
-                  {task.risk > 0 && (
-                     <div className="w-12 h-1 bg-outline-variant/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary" style={{ width: `${task.risk}%` }}></div>
-                     </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {projectTasks.filter(t => t.status === col.id).length === 0 && (
-              <div className="flex-1 border-2 border-dashed border-outline-variant/10 rounded-2xl flex items-center justify-center py-10">
-                <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Trascina qui</span>
-              </div>
-            )}
-          </div>
+    <div className={`space-y-4 ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
+      <div className="glass-panel rounded-[2rem] overflow-hidden border border-outline-variant/10 shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-surface/50 border-b border-outline-variant/10">
+              <tr>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Titolo Task</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Stato</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Priorità</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Scadenza</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">Rischio</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/5">
+              {projectTasks.length > 0 ? projectTasks.map(task => (
+                <tr
+                  key={task.id}
+                  onClick={() => setEditingTask(task)}
+                  className="hover:bg-surface/50 transition-all cursor-pointer group"
+                >
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-2 h-2 rounded-full ${
+                        task.status === 'Completato' ? 'bg-emerald-500' :
+                        task.status === 'In corso' ? 'bg-amber-500' :
+                        task.status === 'Bloccato' ? 'bg-rose-500' : 'bg-slate-400'
+                      }`}></div>
+                      <div>
+                        <div className="font-black text-on-surface group-hover:text-primary transition-colors">{task.title}</div>
+                        <div className="text-xs text-on-surface-variant font-medium line-clamp-1 max-w-xs">{task.description}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-outline-variant/20 bg-surface/50 text-on-surface">
+                      {task.status}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-sm font-bold text-on-surface-variant">
+                    {task.due_date}
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                       <div className="w-20 h-1.5 bg-outline-variant/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${task.risk}%` }}></div>
+                       </div>
+                       <span className="text-[10px] font-black text-on-surface-variant">{task.risk}%</span>
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-4 opacity-40">
+                      <span className="material-symbols-outlined text-6xl">assignment_late</span>
+                      <p className="font-black uppercase tracking-widest text-xs">Nessun task trovato</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      ))}
+      </div>
 
       {editingTask && (
         <Modal

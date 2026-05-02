@@ -73,8 +73,8 @@ const ProjectDetail: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
-      <header className="glass-panel p-8 rounded-3xl flex justify-between items-center border border-white/40 shadow-lg relative">
+      {/* Header - Always visible */}
+      <header className="glass-panel p-8 rounded-3xl flex justify-between items-center border border-outline-variant/20 shadow-lg relative z-30">
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xl">
             <span className="material-symbols-outlined text-3xl">rocket_launch</span>
@@ -82,10 +82,10 @@ const ProjectDetail: React.FC = () => {
           <div className="relative group">
             {editingTitle ? (
               <>
-                <div className="fixed inset-0 bg-black/5 z-10" onClick={() => setEditingTitle(false)}></div>
+                <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-10" onClick={() => setEditingTitle(false)}></div>
                 <input
                   ref={titleInputRef}
-                  className="text-3xl font-black text-on-surface bg-white/50 dark:bg-slate-800/50 rounded-xl px-2 outline-none relative z-20"
+                  className="text-3xl font-black text-on-surface bg-surface border-2 border-primary rounded-xl px-2 outline-none relative z-20 shadow-2xl"
                   value={project.name}
                   onChange={e => handleUpdate({ name: e.target.value })}
                   onBlur={() => setEditingTitle(false)}
@@ -102,11 +102,12 @@ const ProjectDetail: React.FC = () => {
             <p className="text-on-surface-variant font-medium">{project.category} • Iniziato il {project.started_at}</p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button
             onClick={handleDelete}
-            className="px-6 py-3 rounded-xl bg-error/10 text-error font-bold hover:bg-error/20 transition-all active:scale-95 border border-error/20"
+            className="px-8 py-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 font-bold border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition-all active:scale-95 flex items-center gap-2"
           >
+            <span className="material-symbols-outlined text-lg">delete</span>
             Elimina
           </button>
 
@@ -114,25 +115,25 @@ const ProjectDetail: React.FC = () => {
             <select
               value={project.status}
               onChange={(e) => handleUpdate({ status: e.target.value })}
-              className="appearance-none px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-lg transition-all active:scale-95 shadow-md pr-12 outline-none"
+              className="appearance-none px-8 py-3 rounded-xl bg-surface border-2 border-outline-variant/20 text-on-surface font-black hover:border-primary transition-all active:scale-95 shadow-sm pr-12 outline-none cursor-pointer"
             >
-              {STATUSES.map(s => <option key={s} className="text-slate-900">{s}</option>)}
+              {STATUSES.map(s => <option key={s}>{s}</option>)}
             </select>
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white">expand_more</span>
+            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
           </div>
         </div>
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/40 backdrop-blur-md p-1.5 rounded-2xl border border-white/20 w-fit self-center">
+      <div className="flex gap-1 bg-surface/40 backdrop-blur-md p-1.5 rounded-2xl border border-outline-variant/10 w-fit self-center z-20">
         {(['overview', 'tasks', 'whiteboard', 'settings'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-8 py-3 rounded-xl text-sm font-bold capitalize transition-all ${
+            className={`px-8 py-3 rounded-xl text-sm font-black capitalize transition-all ${
               activeTab === tab
                 ? 'bg-surface shadow-md text-primary'
-                : 'text-on-surface-variant hover:text-on-surface hover:bg-white/40'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/40'
             }`}
           >
             {tab === 'overview' ? 'Panoramica' : (tab === 'tasks' ? 'Tasks' : tab)}
@@ -140,20 +141,20 @@ const ProjectDetail: React.FC = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="min-h-[600px]">
+      {/* Content Area */}
+      <div className="min-h-[600px] relative z-10">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="lg:col-span-2 space-y-8">
-              <section className="glass-panel p-8 rounded-3xl border border-white/40 relative">
+              <section className="glass-panel p-8 rounded-3xl border border-outline-variant/20 relative">
                 <h3 className="text-xl font-black text-on-surface mb-4">Descrizione</h3>
                 {editingDesc ? (
                   <>
-                    <div className="fixed inset-0 bg-black/5 z-10" onClick={() => setEditingDesc(false)}></div>
+                    <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-10" onClick={() => setEditingDesc(false)}></div>
                     <textarea
                       ref={descInputRef}
                       rows={6}
-                      className="w-full text-on-surface-variant leading-relaxed text-lg bg-white/50 dark:bg-slate-800/50 rounded-2xl p-4 outline-none relative z-20 shadow-inner"
+                      className="w-full text-on-surface-variant leading-relaxed text-lg bg-surface border-2 border-primary rounded-2xl p-4 outline-none relative z-20 shadow-2xl"
                       value={project.description}
                       onChange={e => handleUpdate({ description: e.target.value })}
                       onBlur={() => setEditingDesc(false)}
@@ -167,10 +168,11 @@ const ProjectDetail: React.FC = () => {
                     {project.description}
                   </p>
                 )}
+                <p className="mt-4 text-[10px] text-on-surface-variant uppercase font-black tracking-widest opacity-50 px-4">Doppio click per modificare</p>
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="glass-panel p-6 rounded-2xl border border-white/40 flex flex-col gap-2">
+                <div className="glass-panel p-6 rounded-2xl border border-outline-variant/20 flex flex-col gap-2">
                   <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Avanzamento</span>
                   <div className="flex justify-between items-end mb-1">
                     <span className="text-3xl font-black text-primary">{project.progress}%</span>
@@ -180,7 +182,7 @@ const ProjectDetail: React.FC = () => {
                     <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-1000" style={{ width: `${project.progress}%` }}></div>
                   </div>
                 </div>
-                <div className="glass-panel p-6 rounded-2xl border border-white/40 flex flex-col justify-between">
+                <div className="glass-panel p-6 rounded-2xl border border-outline-variant/20 flex flex-col justify-between">
                   <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Membri Team</span>
                   <div className="flex items-center gap-4 mt-2">
                     <div className="flex -space-x-3">
@@ -201,11 +203,11 @@ const ProjectDetail: React.FC = () => {
               </section>
             </div>
 
-            <aside className="glass-panel p-8 rounded-3xl border border-white/40 flex flex-col gap-6">
+            <aside className="glass-panel p-8 rounded-3xl border border-outline-variant/20 flex flex-col gap-6">
               <h4 className="font-black text-on-surface border-b border-outline-variant/10 pb-4">Statistiche Rapide</h4>
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner transition-colors">
                     <span className="material-symbols-outlined">task_alt</span>
                   </div>
                   <div>
@@ -214,7 +216,7 @@ const ProjectDetail: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-inner transition-colors">
                     <span className="material-symbols-outlined">pending</span>
                   </div>
                   <div>
@@ -230,7 +232,7 @@ const ProjectDetail: React.FC = () => {
         {activeTab === 'tasks' && <Kanban projectId={id} />}
 
         {activeTab === 'whiteboard' && (
-          <div className="h-[700px] w-full rounded-3xl overflow-hidden border border-white/40 shadow-2xl relative">
+          <div className="h-[700px] w-full rounded-3xl overflow-hidden border border-outline-variant/20 shadow-2xl relative bg-white animate-in zoom-in-95 duration-500">
             <Whiteboard
               elements={whiteboardElements}
               onSave={handleSaveWhiteboard}
@@ -239,7 +241,7 @@ const ProjectDetail: React.FC = () => {
         )}
 
         {activeTab === 'settings' && (
-          <div className="glass-panel p-12 rounded-3xl border border-white/40 max-w-2xl mx-auto space-y-8">
+          <div className="glass-panel p-12 rounded-3xl border border-outline-variant/20 max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex justify-between items-center mb-8 border-b border-outline-variant/10 pb-6">
                <h3 className="text-2xl font-black text-on-surface">Impostazioni Progetto</h3>
                <button

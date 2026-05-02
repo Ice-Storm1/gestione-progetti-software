@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
 const Projects: React.FC = () => {
-  const { projects, searchQuery, deleteProject, addProject } = useAppContext();
+  const { projects, searchQuery, addProject } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState('Tutti');
   const [sortBy, setSortBy] = useState<string>('Nome');
@@ -134,22 +134,15 @@ const Projects: React.FC = () => {
           {sortedProjects.map(p => (
             <div
               key={p.id}
-              className="glass-panel p-8 rounded-[2rem] group hover:shadow-2xl transition-all duration-500 border border-outline-variant/20 flex flex-col gap-6"
+              onClick={() => navigate(`/projects/${p.id}`)}
+              className="glass-panel p-8 rounded-[2rem] group hover:shadow-2xl transition-all duration-500 border border-outline-variant/20 flex flex-col gap-6 cursor-pointer"
             >
               <div className="flex justify-between items-start">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <span className="material-symbols-outlined text-3xl">rocket_launch</span>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => deleteProject(p.id)}
-                    className="p-2 text-on-surface-variant hover:text-error transition-colors"
-                  >
-                    <span className="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
               </div>
-              <div onClick={() => navigate(`/projects/${p.id}`)} className="cursor-pointer">
+              <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-xl font-black text-on-surface">{p.name}</h3>
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
@@ -220,7 +213,7 @@ const Projects: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
               {sortedProjects.map(p => (
-                <tr key={p.id} className="hover:bg-surface/30 transition-colors group">
+                <tr key={p.id} className="hover:bg-surface/30 transition-colors group cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
                   <td className="px-8 py-6">
                     <div className="font-black text-on-surface">{p.name}</div>
                     <div className="text-xs text-on-surface-variant font-medium truncate max-w-[200px]">{p.description}</div>
@@ -249,7 +242,7 @@ const Projects: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <button onClick={() => navigate(`/projects/${p.id}`)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                    <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
                       <span className="material-symbols-outlined">arrow_forward</span>
                     </button>
                   </td>

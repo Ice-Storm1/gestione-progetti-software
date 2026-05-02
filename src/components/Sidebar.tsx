@@ -47,10 +47,17 @@ const Sidebar: React.FC = () => {
           <span className="material-symbols-outlined">settings</span>
           <span className="font-medium">Impostazioni</span>
         </NavLink>
-        <a href="#" className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all">
+        <NavLink
+          to="/support"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-6 py-3.5 rounded-2xl transition-all duration-300 ${
+              isActive ? 'text-primary font-bold' : 'text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40'
+            }`
+          }
+        >
           <span className="material-symbols-outlined">help</span>
           <span className="font-medium">Supporto</span>
-        </a>
+        </NavLink>
       </div>
     </aside>
   );

@@ -36,7 +36,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
       ctx.lineJoin = 'round';
 
       // Draw grid
-      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.03)';
       ctx.lineWidth = 1;
       for (let i = 0; i < canvas.width; i += 20) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
@@ -81,12 +81,12 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
     const y = e.clientY - rect.top;
     setIsDrawing(true);
 
-    if (tool === 'pen') {
+    if (tool === 'pen' || tool === 'eraser') {
       const newEl: WhiteboardElement = {
         id: Date.now().toString(),
         x: 0, y: 0,
         element_type: 'path',
-        text: JSON.stringify({ color, width: 3, points: [{ x, y }] })
+        text: JSON.stringify({ color: tool === 'eraser' ? '#ffffff' : color, width: tool === 'eraser' ? 20 : 3, points: [{ x, y }] })
       };
       setLocalElements([...localElements, newEl]);
     }
@@ -99,7 +99,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    if (tool === 'pen') {
+    if (tool === 'pen' || tool === 'eraser') {
       const last = localElements[localElements.length - 1];
       const data = JSON.parse(last.text);
       data.points.push({ x, y });
@@ -120,47 +120,50 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
   };
 
   return (
-    <div className="w-full h-full bg-white relative flex flex-col">
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/80 backdrop-blur-xl p-2 rounded-2xl shadow-2xl border border-slate-200">
-        {[
-          { id: 'pen', icon: 'edit' },
-          { id: 'rect', icon: 'rectangle' },
-          { id: 'circle', icon: 'circle' },
-          { id: 'eraser', icon: 'ink_eraser' }
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTool(t.id as any)}
-            className={`p-3 rounded-xl transition-all ${tool === t.id ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
-          >
-            <span className="material-symbols-outlined">{t.icon}</span>
+    <div className="w-full h-full bg-white relative flex flex-col z-0">
+      {/* Excalidraw-like Toolbar */}
+      <div className="absolute top-4 left-4 z-50 flex flex-col gap-4">
+        <div className="flex gap-1 bg-white p-1 rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.1)] border border-slate-200">
+          {[
+            { id: 'pen', icon: 'edit' },
+            { id: 'rect', icon: 'rectangle' },
+            { id: 'circle', icon: 'circle' },
+            { id: 'eraser', icon: 'ink_eraser' }
+          ].map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTool(t.id as any)}
+              className={`p-2.5 rounded-lg transition-all ${tool === t.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <span className="material-symbols-outlined text-lg">{t.icon}</span>
+            </button>
+          ))}
+          <div className="w-px bg-slate-100 mx-1"></div>
+          <button onClick={clear} className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-all">
+            <span className="material-symbols-outlined text-lg">delete</span>
           </button>
-        ))}
-        <div className="w-px bg-slate-200 mx-2"></div>
-        <button onClick={clear} className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-          <span className="material-symbols-outlined">delete</span>
-        </button>
+        </div>
+
+        <div className="flex flex-col gap-1 bg-white p-1 rounded-xl shadow-[0_2px_15px_rgba(0,0,0,0.1)] border border-slate-200 w-fit">
+          {['#0058be', '#6b38d4', '#ba1a1a', '#22c55e', '#000000'].map(c => (
+            <button
+              key={c}
+              onClick={() => setColor(c)}
+              className={`w-8 h-8 rounded-lg border-2 transition-all ${color === c ? 'border-indigo-600 scale-105' : 'border-transparent hover:bg-slate-50'}`}
+              style={{ backgroundColor: c }}
+            />
+          ))}
+        </div>
       </div>
 
       <canvas
         ref={canvasRef}
-        className="flex-1 cursor-crosshair touch-none"
+        className="flex-1 cursor-crosshair touch-none bg-white"
         onMouseDown={startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
       />
-
-      <div className="absolute bottom-6 left-6 z-20 glass-panel p-2 rounded-2xl flex gap-2 border border-slate-200 shadow-xl">
-        {['#0058be', '#6b38d4', '#ba1a1a', '#22c55e', '#000000'].map(c => (
-          <button
-            key={c}
-            onClick={() => setColor(c)}
-            className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'border-primary scale-110' : 'border-transparent hover:scale-105'}`}
-            style={{ backgroundColor: c }}
-          />
-        ))}
-      </div>
     </div>
   );
 };
