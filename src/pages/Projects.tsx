@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
 const Projects: React.FC = () => {
-  const { projects, searchQuery, addProject } = useAppContext();
+  const { projects, searchQuery, addProject, deleteProject } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState('Tutti');
   const [sortBy, setSortBy] = useState<string>('Nome');
@@ -20,7 +20,7 @@ const Projects: React.FC = () => {
     if (sortBy === 'Nome') return a.name.localeCompare(b.name);
     if (sortBy === 'Data') return (a.date || '').localeCompare(b.date || '');
     if (sortBy === 'Orario') return (a.time || '').localeCompare(b.time || '');
-    if (sortBy === 'Data di creazione') return (a.createdAt || '').localeCompare(b.createdAt || '');
+    if (sortBy === 'Data di creazione') return (a.created_at || '').localeCompare(b.created_at || '');
     if (sortBy === 'Stato') return a.status.localeCompare(b.status);
     return 0;
   });
@@ -141,6 +141,17 @@ const Projects: React.FC = () => {
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
                   <span className="material-symbols-outlined text-3xl">rocket_launch</span>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm('Sei sicuro di voler eliminare questo progetto?')) {
+                      deleteProject(p.id);
+                    }
+                  }}
+                  className="p-2 text-on-surface-variant hover:text-error transition-all active:scale-90 opacity-0 group-hover:opacity-100"
+                >
+                  <span className="material-symbols-outlined">delete</span>
+                </button>
               </div>
               <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -242,9 +253,22 @@ const Projects: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined">arrow_forward</span>
-                    </button>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Sei sicuro di voler eliminare questo progetto?')) {
+                            deleteProject(p.id);
+                          }
+                        }}
+                        className="p-2 text-on-surface-variant hover:text-error transition-colors"
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
+                      <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined">arrow_forward</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

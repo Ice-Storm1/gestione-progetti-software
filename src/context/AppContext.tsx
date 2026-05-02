@@ -12,7 +12,7 @@ export interface Project {
   members_count: number;
   date?: string;
   time?: string;
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface Task {
@@ -25,17 +25,17 @@ export interface Task {
   time: string;
   risk: number;
   project_id?: string;
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface User {
   name: string;
   role: string;
   avatar_url: string;
-  email: string;
+  username: string;
   preferences: {
     theme: 'light' | 'dark';
-    notificationsEnabled: boolean;
+    notifications_enabled: boolean;
   };
 }
 
@@ -64,7 +64,7 @@ interface AppContextType {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: string) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   register: (user: Omit<User, 'preferences'>, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => Promise<void>;
@@ -98,7 +98,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications((prev) => [...prev, { id, message, type, status: 'active' }]);
     setTimeout(() => {
       setNotifications((prev) => prev.map(n => n.id === id ? { ...n, status: 'completed' } : n));
-    }, 5000);
+    }, 3000); // Updated to 3000ms
   }, []);
 
   const removeNotification = useCallback((id: number) => {
@@ -135,7 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification('Progetto creato con successo', 'success');
         return newProject;
       } else {
-        const mockProject = { ...project, id: Math.random().toString(), createdAt: new Date().toISOString() } as Project;
+        const mockProject = { ...project, id: Math.random().toString(), created_at: new Date().toISOString() } as Project;
         setProjects((prev) => [...prev, mockProject]);
         addNotification('Progetto creato (Mock)', 'success');
         return mockProject;
@@ -179,7 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification('Task creato con successo', 'success');
         return newTask;
       } else {
-        const mockTask = { ...task, id: Math.random().toString(), createdAt: new Date().toISOString() } as Task;
+        const mockTask = { ...task, id: Math.random().toString(), created_at: new Date().toISOString() } as Task;
         setTasks((prev) => [...prev, mockTask]);
         addNotification('Task creato (Mock)', 'success');
         return mockTask;
@@ -227,22 +227,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     try {
       if (window.__TAURI_INTERNALS__) {
-        const userData = await invoke<User>('login', { email, password });
+        const userData = await invoke<User>('login', { username, password });
         setUser(userData);
         setIsAuthenticated(true);
         localStorage.setItem('protype_session', JSON.stringify(userData));
         addNotification(`Bentornato, ${userData.name}`, 'info');
       } else {
-        if (email === 'admin@protype.com' && password === 'admin') {
+        if (username === 'admin' && password === 'admin') {
           const mockUser: User = {
             name: 'Alessandro Rossi',
             role: 'Project Lead',
             avatar_url: '',
-            email,
-            preferences: { theme: 'light', notificationsEnabled: true }
+            username,
+            preferences: { theme: 'light', notifications_enabled: true }
           };
           setUser(mockUser);
           setIsAuthenticated(true);
@@ -258,7 +258,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const register = async (userData: Omit<User, 'preferences'>, password: string) => {
     try {
-      const fullUser: User = { ...userData, preferences: { theme: 'light', notificationsEnabled: true } };
+      const fullUser: User = { ...userData, preferences: { theme: 'light', notifications_enabled: true } };
       if (window.__TAURI_INTERNALS__) {
         await invoke('register', { user: { ...fullUser, password } });
         addNotification('Registrazione completata! Accedi ora.', 'success');
@@ -329,10 +329,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await Promise.all([refreshProjects(), refreshTasks()]);
         } else {
           setProjects([
-            { id: '1', name: 'Brand Identity 2024', description: 'Ridefinizione completa dell\'immagine coordinata per il lancio internazionale del Q3.', progress: 65, status: 'In corso', category: 'Design', started_at: '2024-01-12', members_count: 12, createdAt: '2024-01-12T10:00:00Z' }
+            { id: '1', name: 'Brand Identity 2024', description: 'Ridefinizione completa dell\'immagine coordinata per il lancio internazionale del Q3.', progress: 65, status: 'In corso', category: 'Design', started_at: '2024-01-12', members_count: 12, created_at: '2024-01-12T10:00:00Z' }
           ]);
           setTasks([
-            { id: '1', title: 'Task Mock', description: 'Descrizione task mock', status: 'In corso', priority: 'Media', due_date: '2024-10-12', time: '10:00', risk: 10, project_id: '1', createdAt: '2024-10-12T10:00:00Z' }
+            { id: '1', title: 'Task Mock', description: 'Descrizione task mock', status: 'In corso', priority: 'Media', due_date: '2024-10-12', time: '10:00', risk: 10, project_id: '1', created_at: '2024-10-12T10:00:00Z' }
           ]);
         }
       } catch (err) {

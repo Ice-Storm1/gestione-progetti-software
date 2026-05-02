@@ -6,14 +6,14 @@ use tauri::{AppHandle, Manager, State};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct UserPreferences {
     pub theme: String,
     pub notifications_enabled: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct Project {
     pub id: String,
     pub name: String,
@@ -29,7 +29,7 @@ pub struct Project {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct Task {
     pub id: String,
     pub title: String,
@@ -44,18 +44,18 @@ pub struct Task {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct User {
     pub name: String,
     pub role: String,
     pub avatar_url: String,
-    pub email: String,
+    pub username: String,
     pub password: Option<String>,
     pub preferences: Option<UserPreferences>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct WhiteboardElement {
     pub id: String,
     pub x: f64,
@@ -65,7 +65,7 @@ pub struct WhiteboardElement {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub struct AppData {
     pub projects: Vec<Project>,
     pub tasks: Vec<Task>,
@@ -126,7 +126,7 @@ fn initial_data() -> AppData {
         users: vec![User {
             name: "Alessandro Rossi".into(),
             role: "Project Lead".into(),
-            email: "admin@protype.com".into(),
+            username: "admin".into(),
             password: Some("admin".into()),
             avatar_url: "".into(),
             preferences: Some(UserPreferences { theme: "light".into(), notifications_enabled: true }),
@@ -212,10 +212,10 @@ fn update_task_status(app: AppHandle, state: State<AppState>, id: String, status
 }
 
 #[tauri::command]
-fn login(state: State<AppState>, email: String, password: String) -> Result<User, String> {
+fn login(state: State<AppState>, username: String, password: String) -> Result<User, String> {
     let data = state.0.lock().unwrap();
     data.users.iter()
-        .find(|u| u.email == email && u.password.as_deref() == Some(&password))
+        .find(|u| u.username == username && u.password.as_deref() == Some(&password))
         .cloned()
         .ok_or_else(|| "Invalid credentials".to_string())
 }
@@ -231,7 +231,7 @@ fn register(app: AppHandle, state: State<AppState>, user: User) -> Result<User, 
 #[tauri::command]
 fn update_user(app: AppHandle, state: State<AppState>, user: User) {
     let mut data = state.0.lock().unwrap();
-    if let Some(u) = data.users.iter_mut().find(|u| u.email == user.email) {
+    if let Some(u) = data.users.iter_mut().find(|u| u.username == user.username) {
         *u = user;
         save_data(&app, &data);
     }

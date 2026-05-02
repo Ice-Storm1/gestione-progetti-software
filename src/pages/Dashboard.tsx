@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
                     <h6 className="text-sm font-black text-on-surface">Workspace Pronto</h6>
                     <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">Live</span>
                   </div>
-                  <p className="text-xs text-on-surface-variant font-medium">Il sistema è sincronizzato.</p>
+                <p className="text-xs text-on-surface-variant font-medium">Il sistema è aggiornato.</p>
                 </div>
               </li>
               {tasks.slice(0, 3).map(task => (

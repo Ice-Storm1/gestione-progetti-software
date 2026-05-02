@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('admin@protype.com');
+  const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAppContext();
@@ -13,7 +13,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(email, password);
+      await login(username, password);
       navigate('/');
     } catch (err) {
       // Notification handled by context
@@ -33,13 +33,13 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Nome Utente</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-white/40 border border-white/30 rounded-2xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-slate-700 shadow-inner"
-                placeholder="es. nome@esempio.com"
+                placeholder="es. alessandro.rossi"
                 required
               />
             </div>

@@ -5,7 +5,7 @@ const Settings: React.FC = () => {
   const { user, updateUser, logout } = useAppContext();
   const [name, setName] = useState(user?.name || '');
   const [theme, setTheme] = useState<'light' | 'dark'>(user?.preferences.theme || 'light');
-  const [notifications, setNotifications] = useState(user?.preferences.notificationsEnabled ?? true);
+  const [notifications, setNotifications] = useState(user?.preferences.notifications_enabled ?? true);
 
   const handleSave = async () => {
     if (user) {
@@ -14,7 +14,7 @@ const Settings: React.FC = () => {
         name,
         preferences: {
           theme,
-          notificationsEnabled: notifications
+          notifications_enabled: notifications
         }
       });
     }
@@ -53,12 +53,12 @@ const Settings: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Email (non modificabile)</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Nome Utente (non modificabile)</label>
                 <input
                   type="text"
                   disabled
                   className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 text-slate-400 dark:text-slate-600 cursor-not-allowed transition-colors"
-                  value={user?.email}
+                  value={user?.username}
                 />
               </div>
             </div>
