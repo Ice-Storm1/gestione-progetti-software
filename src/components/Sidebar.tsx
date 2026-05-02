@@ -10,10 +10,10 @@ const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[280px] border-r border-white/20 bg-white/65 backdrop-blur-xl flex flex-col p-6 z-40 hidden md:flex">
+    <aside className="fixed left-0 top-0 h-screen w-[280px] border-r border-outline-variant/20 bg-surface/65 backdrop-blur-xl flex flex-col p-6 z-40 hidden md:flex">
       <div className="mb-10">
         <span className="text-2xl font-black bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent tracking-tighter">ProjectFlow</span>
-        <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1 px-1">Elite Management</p>
+        <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1 px-1">Elite Management</p>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -24,8 +24,8 @@ const Sidebar: React.FC = () => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-6 py-3.5 rounded-2xl transition-all duration-300 ${
                 isActive
-                  ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-700 font-bold border-l-4 border-indigo-600'
-                  : 'text-slate-500 hover:bg-white/40 hover:text-slate-800'
+                  ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-primary font-bold border-l-4 border-primary'
+                  : 'text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 hover:text-on-surface'
               }`
             }
           >
@@ -35,19 +35,19 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      <div className="mt-auto pt-6 border-t border-white/20 space-y-2">
+      <div className="mt-auto pt-6 border-t border-outline-variant/20 space-y-2">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
             `flex items-center gap-3 px-6 py-3.5 rounded-2xl transition-all duration-300 ${
-              isActive ? 'text-indigo-700 font-bold' : 'text-slate-500 hover:bg-white/40'
+              isActive ? 'text-primary font-bold' : 'text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40'
             }`
           }
         >
           <span className="material-symbols-outlined">settings</span>
           <span className="font-medium">Impostazioni</span>
         </NavLink>
-        <a href="#" className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-slate-500 hover:bg-white/40 transition-all">
+        <a href="#" className="flex items-center gap-3 px-6 py-3.5 rounded-2xl text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all">
           <span className="material-symbols-outlined">help</span>
           <span className="font-medium">Supporto</span>
         </a>

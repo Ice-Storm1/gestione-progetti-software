@@ -22,13 +22,13 @@ const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/65 dark:bg-slate-900/65 backdrop-blur-xl border-b border-white/20 dark:border-slate-800/50 flex justify-between items-center px-8 h-16 shadow-sm transition-colors">
+    <header className="sticky top-0 z-40 bg-surface/65 backdrop-blur-xl border-b border-outline-variant/20 flex justify-between items-center px-8 h-16 shadow-sm transition-colors">
       <div className="flex-1 flex items-center">
         {isProjectsPage ? (
-          <div className="flex items-center gap-4 bg-white/40 dark:bg-slate-800/40 px-4 py-2 rounded-full border border-white/20 dark:border-slate-700/50 w-96 max-w-md hidden md:flex transition-all">
-            <span className="material-symbols-outlined text-slate-400">search</span>
+          <div className="flex items-center gap-4 bg-white/40 dark:bg-slate-800/40 px-4 py-2 rounded-full border border-outline-variant/20 w-96 max-w-md hidden md:flex transition-all">
+            <span className="material-symbols-outlined text-outline">search</span>
             <input
-              className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none dark:text-white"
+              className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none text-on-surface"
               placeholder="Cerca progetti..."
               type="text"
               value={searchQuery}
@@ -36,7 +36,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
             />
           </div>
         ) : (
-          <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">
+          <h2 className="text-xl font-black text-on-surface tracking-tight">
             {getPageTitle()}
           </h2>
         )}
@@ -46,7 +46,7 @@ const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={onNewTask}
-            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full text-slate-600 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all text-sm font-bold"
+            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all text-sm font-bold"
           >
             <span className="material-symbols-outlined text-lg">add_task</span>
             Task
@@ -59,20 +59,20 @@ const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
           </button>
         </div>
 
-        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+        <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
 
         <div className="flex items-center gap-3">
-          <Link to="/notifications" className="relative p-2 text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all">
+          <Link to="/notifications" className="relative p-2 text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all">
             <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-surface"></span>
           </Link>
 
-          <div className="flex items-center gap-3 border-l border-slate-100 dark:border-slate-800 pl-4">
+          <div className="flex items-center gap-3 border-l border-outline-variant/30 pl-4">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">{user?.name || 'Guest'}</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">{user?.role || 'User'}</p>
+              <p className="text-xs font-black text-on-surface leading-tight">{user?.name || 'Guest'}</p>
+              <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">{user?.role || 'User'}</p>
             </div>
-            <Link to="/settings" className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm hover:ring-4 hover:ring-indigo-500/10 transition-all">
+            <Link to="/settings" className="w-10 h-10 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm hover:ring-4 hover:ring-primary/10 transition-all">
               <img
                 alt="User"
                 className="w-full h-full object-cover"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppContext } from '../context/AppContext';
 
 interface KanbanProps {
@@ -7,90 +7,94 @@ interface KanbanProps {
 
 const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
   const { tasks, updateTaskStatus, deleteTask } = useAppContext();
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   const columns = [
     { id: 'Da fare', label: 'Da fare', color: 'bg-primary' },
-    { id: 'In corso', label: 'In corso', color: 'bg-secondary' },
+    { id: 'In corso', label: 'In corso', color: 'bg-amber-500' },
     { id: 'Completati', label: 'Completati', color: 'bg-emerald-500' },
-    { id: 'Bloccati', label: 'Bloccati', color: 'bg-error' },
+    { id: 'Bloccati', label: 'Bloccati', color: 'bg-rose-500' },
   ];
 
-  // Filter tasks if projectId is provided
-  const filteredTasks = projectId ? tasks.filter(t => t.project_id === projectId) : tasks;
+  const projectTasks = projectId
+    ? tasks.filter(t => t.project_id === projectId)
+    : tasks;
 
-  const handleDragStart = (id: string) => {
-    setDraggedTaskId(id);
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('taskId', id);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent, status: string) => {
+    const taskId = e.dataTransfer.getData('taskId');
+    await updateTaskStatus(taskId, status);
+  };
+
+  const allowDrop = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  const handleDrop = async (status: string) => {
-    if (draggedTaskId) {
-      await updateTaskStatus(draggedTaskId, status);
-      setDraggedTaskId(null);
-    }
-  };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full min-h-[600px]">
-      {columns.map((column) => (
+    <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 min-h-[600px] ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
+      {columns.map(col => (
         <div
-          key={column.id}
-          className="flex flex-col gap-4"
-          onDragOver={handleDragOver}
-          onDrop={() => handleDrop(column.id)}
+          key={col.id}
+          onDrop={(e) => handleDrop(e, col.id)}
+          onDragOver={allowDrop}
+          className="flex flex-col gap-4 bg-surface/30 dark:bg-slate-800/30 p-4 rounded-3xl border border-outline-variant/10 shadow-inner"
         >
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${column.color}`}></span>
-              <h3 className="font-bold text-xs uppercase tracking-widest text-slate-500">{column.label}</h3>
-              <span className="bg-white/50 px-2 py-0.5 rounded text-[10px] font-bold text-slate-600 shadow-sm border border-white/40">
-                {filteredTasks.filter((t) => t.status === column.id).length}
+              <span className={`w-2 h-2 rounded-full ${col.color}`}></span>
+              <h3 className="text-xs font-black uppercase tracking-widest text-on-surface-variant">{col.label}</h3>
+              <span className="bg-surface shadow-sm px-2 py-0.5 rounded text-[10px] font-black text-primary">
+                {projectTasks.filter(t => t.status === col.id).length}
               </span>
             </div>
+            <button className="material-symbols-outlined text-outline hover:text-primary transition-colors text-sm">more_horiz</button>
           </div>
 
-          <div className="flex-1 flex flex-col gap-4 bg-slate-50/30 rounded-3xl p-2 border border-white/10 backdrop-blur-sm">
-            {filteredTasks
-              .filter((task) => task.status === column.id)
-              .map((task) => (
-                <div
-                  key={task.id}
-                  draggable
-                  onDragStart={() => handleDragStart(task.id)}
-                  className="glass-panel rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-grab active:cursor-grabbing border border-white/40 bg-white/60 group"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border ${
-                      task.priority === 'Alta' ? 'bg-rose-50 text-error border-rose-100' :
-                      task.priority === 'Media' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                      'bg-emerald-50 text-emerald-600 border-emerald-100'
-                    }`}>
-                      {task.priority}
-                    </span>
-                    <button onClick={() => deleteTask(task.id)} className="text-slate-200 hover:text-error transition-colors">
-                      <span className="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                  </div>
-                  <h4 className="font-bold text-slate-800 mb-2 leading-snug">{task.title}</h4>
-                  <p className="text-[11px] text-slate-500 font-medium mb-4 line-clamp-2">{task.description}</p>
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-slate-50">
-                    <div className="flex items-center gap-1.5 text-slate-400">
-                      <span className="material-symbols-outlined text-sm">calendar_today</span>
-                      <span className="text-[10px] font-bold">{task.due_date}</span>
-                    </div>
-                    {task.risk > 0 && (
-                       <div className="flex items-center gap-1 text-amber-500">
-                         <span className="material-symbols-outlined text-xs">warning</span>
-                         <span className="text-[9px] font-black">{task.risk}%</span>
-                       </div>
-                    )}
-                  </div>
+          <div className="flex-1 flex flex-col gap-4">
+            {projectTasks.filter(t => t.status === col.id).map(task => (
+              <div
+                key={task.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, task.id)}
+                className="glass-panel inner-glow rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all cursor-grab active:cursor-grabbing border border-outline-variant/10 bg-surface dark:bg-slate-800 group"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter border ${
+                    task.priority === 'Alta' ? 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/30' :
+                    task.priority === 'Media' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30' :
+                    'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30'
+                  }`}>
+                    {task.priority}
+                  </span>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="material-symbols-outlined text-outline hover:text-error transition-colors text-sm opacity-0 group-hover:opacity-100"
+                  >
+                    delete
+                  </button>
                 </div>
-              ))}
+                <h4 className="text-base font-black text-on-surface mb-3 line-clamp-2">{task.title}</h4>
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-1.5 text-on-surface-variant">
+                    <span className="material-symbols-outlined text-sm">calendar_today</span>
+                    <span className="text-[10px] font-bold">{task.due_date}</span>
+                  </div>
+                  {task.risk > 0 && (
+                     <div className="w-12 h-1 bg-outline-variant/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-primary" style={{ width: `${task.risk}%` }}></div>
+                     </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {projectTasks.filter(t => t.status === col.id).length === 0 && (
+              <div className="flex-1 border-2 border-dashed border-outline-variant/10 rounded-2xl flex items-center justify-center py-10">
+                <span className="text-[10px] font-bold text-outline uppercase tracking-widest">Trascina qui</span>
+              </div>
+            )}
           </div>
         </div>
       ))}
