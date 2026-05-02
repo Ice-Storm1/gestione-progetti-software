@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext, Project, WhiteboardElement } from '../context/AppContext';
-import Kanban from './Kanban';
+import TaskList from './TaskList';
 import Whiteboard from '../components/Whiteboard';
 import { STATUSES } from '../constants';
 
@@ -12,10 +12,6 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'whiteboard' | 'settings'>('overview');
   const [whiteboardElements, setWhiteboardElements] = useState<WhiteboardElement[]>([]);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [editingDesc, setEditingDesc] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const descInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const p = projects.find(p => p.id === id);
@@ -31,11 +27,6 @@ const ProjectDetail: React.FC = () => {
       getWhiteboard(id).then(setWhiteboardElements);
     }
   }, [id, activeTab, getWhiteboard]);
-
-  useEffect(() => {
-    if (editingTitle && titleInputRef.current) titleInputRef.current.focus();
-    if (editingDesc && descInputRef.current) descInputRef.current.focus();
-  }, [editingTitle, editingDesc]);
 
   if (!project) return null;
 
@@ -79,26 +70,10 @@ const ProjectDetail: React.FC = () => {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xl">
             <span className="material-symbols-outlined text-3xl">rocket_launch</span>
           </div>
-          <div className="relative group">
-            {editingTitle ? (
-              <>
-                <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-10" onClick={() => setEditingTitle(false)}></div>
-                <input
-                  ref={titleInputRef}
-                  className="text-3xl font-black text-on-surface bg-surface border-2 border-primary rounded-xl px-2 outline-none relative z-20 shadow-2xl"
-                  value={project.name}
-                  onChange={e => handleUpdate({ name: e.target.value })}
-                  onBlur={() => setEditingTitle(false)}
-                />
-              </>
-            ) : (
-              <h1
-                onDoubleClick={() => setEditingTitle(true)}
-                className="text-3xl font-black text-on-surface tracking-tight cursor-pointer hover:text-primary transition-colors"
-              >
-                {project.name}
-              </h1>
-            )}
+          <div>
+            <h1 className="text-3xl font-black text-on-surface tracking-tight">
+              {project.name}
+            </h1>
             <p className="text-on-surface-variant font-medium">{project.category} • Iniziato il {project.started_at}</p>
           </div>
         </div>
@@ -136,7 +111,7 @@ const ProjectDetail: React.FC = () => {
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/40'
             }`}
           >
-            {tab === 'overview' ? 'Panoramica' : (tab === 'tasks' ? 'Tasks' : tab)}
+            {tab === 'overview' ? 'Panoramica' : (tab === 'tasks' ? 'Tasks' : tab === 'settings' ? 'Impostazioni' : tab)}
           </button>
         ))}
       </div>
@@ -148,27 +123,9 @@ const ProjectDetail: React.FC = () => {
             <div className="lg:col-span-2 space-y-8">
               <section className="glass-panel p-8 rounded-3xl border border-outline-variant/20 relative">
                 <h3 className="text-xl font-black text-on-surface mb-4">Descrizione</h3>
-                {editingDesc ? (
-                  <>
-                    <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-10" onClick={() => setEditingDesc(false)}></div>
-                    <textarea
-                      ref={descInputRef}
-                      rows={6}
-                      className="w-full text-on-surface-variant leading-relaxed text-lg bg-surface border-2 border-primary rounded-2xl p-4 outline-none relative z-20 shadow-2xl"
-                      value={project.description}
-                      onChange={e => handleUpdate({ description: e.target.value })}
-                      onBlur={() => setEditingDesc(false)}
-                    />
-                  </>
-                ) : (
-                  <p
-                    onDoubleClick={() => setEditingDesc(true)}
-                    className="text-on-surface-variant leading-relaxed text-lg cursor-pointer hover:bg-surface/30 p-4 rounded-2xl transition-all"
-                  >
-                    {project.description}
-                  </p>
-                )}
-                <p className="mt-4 text-[10px] text-on-surface-variant uppercase font-black tracking-widest opacity-50 px-4">Doppio click per modificare</p>
+                <p className="text-on-surface-variant leading-relaxed text-lg p-4 rounded-2xl transition-all">
+                  {project.description || 'Nessuna descrizione fornita.'}
+                </p>
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,7 +149,7 @@ const ProjectDetail: React.FC = () => {
                         </div>
                       ))}
                       <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border-2 border-surface flex items-center justify-center text-xs font-bold text-primary shadow-sm">
-                        +{project.members_count - 4}
+                        +{Math.max(0, project.members_count - 4)}
                       </div>
                     </div>
                     <button className="p-2 rounded-full hover:bg-surface text-primary">
@@ -229,7 +186,7 @@ const ProjectDetail: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'tasks' && <Kanban projectId={id} />}
+        {activeTab === 'tasks' && <TaskList projectId={id} />}
 
         {activeTab === 'whiteboard' && (
           <div className="h-[700px] w-full rounded-3xl overflow-hidden border border-outline-variant/20 shadow-2xl relative bg-white animate-in zoom-in-95 duration-500">
@@ -255,7 +212,7 @@ const ProjectDetail: React.FC = () => {
 
             <form className="space-y-6" onSubmit={(e) => {
               e.preventDefault();
-              updateProject(project);
+              if (project) updateProject(project);
             }}>
               <div>
                 <label className="block text-sm font-bold text-on-surface-variant mb-2 px-1 uppercase tracking-widest text-[10px]">Nome Progetto</label>
@@ -263,7 +220,16 @@ const ProjectDetail: React.FC = () => {
                   type="text"
                   value={project.name}
                   onChange={(e) => setProject({...project, name: e.target.value})}
-                  className="w-full bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
+                  className="w-full bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-on-surface-variant mb-2 px-1 uppercase tracking-widest text-[10px]">Descrizione</label>
+                <textarea
+                  value={project.description}
+                  rows={5}
+                  onChange={(e) => setProject({...project, description: e.target.value})}
+                  className="w-full bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface font-medium"
                 />
               </div>
               <div>

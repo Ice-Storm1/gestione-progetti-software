@@ -9,7 +9,7 @@ import Settings from './pages/Settings';
 import Welcome from './pages/Welcome';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Kanban from './pages/Kanban';
+import TaskList from './pages/TaskList';
 import Notifications from './pages/Notifications';
 import Support from './pages/Support';
 import { AppProvider, useAppContext } from './context/AppContext';
@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/new" element={<Projects />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
-        <Route path="/kanban" element={<Kanban />} />
+        <Route path="/kanban" element={<TaskList />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/notifications" element={<Notifications />} />

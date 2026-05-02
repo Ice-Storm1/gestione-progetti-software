@@ -109,6 +109,26 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
           onChange={e => setFormData({...formData, due_date: e.target.value})}
         />
       </div>
+      <div>
+        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Orario</label>
+        <input
+          type="time"
+          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
+          value={formData.time}
+          onChange={e => setFormData({...formData, time: e.target.value})}
+        />
+      </div>
+      <div className="col-span-2">
+        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Rischio ({formData.risk}%)</label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          className="w-full h-2 bg-outline-variant/20 rounded-lg appearance-none cursor-pointer accent-primary"
+          value={formData.risk}
+          onChange={e => setFormData({...formData, risk: parseInt(e.target.value)})}
+        />
+      </div>
       <div className="col-span-2 pt-4 flex gap-4">
         <button
           type="button"

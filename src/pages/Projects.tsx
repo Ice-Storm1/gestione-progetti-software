@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { STATUSES } from '../constants';
 
 const Projects: React.FC = () => {
   const { projects, searchQuery, addProject, deleteProject } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [filter, setFilter] = useState('Tutti');
+  const [filterStatus, setFilterStatus] = useState('Tutti');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterTime, setFilterTime] = useState('');
   const [sortBy, setSortBy] = useState<string>('Nome');
   const navigate = useNavigate();
 
   const filteredProjects = projects.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === 'Tutti' || p.status === filter;
-    return matchesSearch && matchesFilter;
+    const matchesStatus = filterStatus === 'Tutti' || p.status === filterStatus;
+    const matchesDate = !filterDate || p.date === filterDate;
+    const matchesTime = !filterTime || (p.time && p.time.startsWith(filterTime));
+    return matchesSearch && matchesStatus && matchesDate && matchesTime;
   });
 
   const sortedProjects = [...filteredProjects].sort((a, b) => {
@@ -72,27 +77,51 @@ const Projects: React.FC = () => {
         </div>
       </div>
 
-      <div className="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-outline-variant/20">
-        <div className="flex items-center gap-1 bg-surface/50 p-1 rounded-xl shadow-inner overflow-x-auto max-w-[500px]">
-          <button
-            onClick={() => setFilter('Tutti')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
-              filter === 'Tutti' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'
-            }`}
-          >
-            Tutti
-          </button>
-          {['In corso', 'Pianificazione', 'Completato'].map(f => (
+      <div className="glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-6 border border-outline-variant/20">
+        <div className="flex flex-wrap items-center gap-4 flex-1">
+          <div className="flex flex-col gap-1.5 min-w-[180px]">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Stato</label>
+            <div className="relative">
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all pr-10"
+              >
+                <option>Tutti</option>
+                {STATUSES.map(s => <option key={s}>{s}</option>)}
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Data</label>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Orario</label>
+            <input
+              type="time"
+              value={filterTime}
+              onChange={(e) => setFilterTime(e.target.value)}
+              className="bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
+
+          {(filterStatus !== 'Tutti' || filterDate || filterTime) && (
             <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
-                filter === f ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'
-              }`}
+              onClick={() => { setFilterStatus('Tutti'); setFilterDate(''); setFilterTime(''); }}
+              className="mt-5 px-4 py-2 text-xs font-black text-rose-500 hover:bg-rose-50 rounded-lg transition-all uppercase tracking-widest"
             >
-              {f}
+              Resetta
             </button>
-          ))}
+          )}
         </div>
 
         <div className="flex items-center gap-3">

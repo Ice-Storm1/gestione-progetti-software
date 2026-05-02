@@ -3,11 +3,11 @@ import { useAppContext, Task } from '../context/AppContext';
 import Modal from '../components/Modal';
 import TaskForm from '../components/TaskForm';
 
-interface KanbanProps {
+interface TaskListProps {
   projectId?: string;
 }
 
-const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
+const TaskList: React.FC<TaskListProps> = ({ projectId }) => {
   const { tasks } = useAppContext();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -110,4 +110,4 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
   );
 };
 
-export default Kanban;
+export default TaskList;

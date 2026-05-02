@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 const Settings: React.FC = () => {
   const { user, updateUser, logout } = useAppContext();
   const [name, setName] = useState(user?.name || '');
+  const [password, setPassword] = useState(user?.password || '');
   const [theme, setTheme] = useState<'light' | 'dark'>(user?.preferences.theme || 'light');
   const [notifications, setNotifications] = useState(user?.preferences.notifications_enabled ?? true);
 
@@ -12,6 +13,7 @@ const Settings: React.FC = () => {
       await updateUser({
         ...user,
         name,
+        password,
         preferences: {
           theme,
           notifications_enabled: notifications
@@ -53,12 +55,13 @@ const Settings: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Nome Utente (non modificabile)</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Password</label>
                 <input
-                  type="text"
-                  disabled
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 text-slate-400 dark:text-slate-600 cursor-not-allowed transition-colors"
-                  value={user?.username}
+                  type="password"
+                  className="w-full bg-white/60 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white transition-colors"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Nuova password"
                 />
               </div>
             </div>

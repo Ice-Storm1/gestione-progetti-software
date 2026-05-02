@@ -41,7 +41,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, description, chil
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className={`relative w-full ${maxWidth} glass-panel bg-white/95 dark:bg-slate-800/95 rounded-[2rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col max-h-[calc(100vh-4rem)] border border-white/40 dark:border-slate-700/40`}
+            className={`relative w-full ${maxWidth} glass-panel bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col max-h-[calc(100vh-8rem)] border border-white/40 dark:border-slate-800/40`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

@@ -33,6 +33,7 @@ export interface User {
   role: string;
   avatar_url: string;
   username: string;
+  password?: string;
   preferences: {
     theme: 'light' | 'dark';
     notifications_enabled: boolean;
