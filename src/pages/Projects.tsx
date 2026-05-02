@@ -3,9 +3,10 @@ import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
 const Projects: React.FC = () => {
-  const { projects, searchQuery, deleteProject } = useAppContext();
+  const { projects, searchQuery, deleteProject, addProject } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState('Tutti');
+  const [sortBy, setSortBy] = useState<string>('Nome');
   const navigate = useNavigate();
 
   const filteredProjects = projects.filter(p => {
@@ -15,6 +16,37 @@ const Projects: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
+    if (sortBy === 'Nome') return a.name.localeCompare(b.name);
+    if (sortBy === 'Data') return (a.date || '').localeCompare(b.date || '');
+    if (sortBy === 'Orario') return (a.time || '').localeCompare(b.time || '');
+    if (sortBy === 'Data di creazione') return (a.createdAt || '').localeCompare(b.createdAt || '');
+    if (sortBy === 'Stato') return a.status.localeCompare(b.status);
+    return 0;
+  });
+
+  const handleImport = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const projectData = JSON.parse(event.target?.result as string);
+            await addProject(projectData);
+          } catch (err) {
+            console.error('Import failed', err);
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -22,22 +54,39 @@ const Projects: React.FC = () => {
           <h2 className="text-4xl font-black text-on-surface tracking-tight">Progetti</h2>
           <p className="text-on-surface-variant mt-1 font-medium text-lg">Gestisci e monitora l'avanzamento dei tuoi workspace attivi.</p>
         </div>
-        <button
-          onClick={() => navigate('/projects/new')}
-          className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-500/20 hover:translate-y-[-2px] transition-all flex items-center gap-2 active:scale-95"
-        >
-          <span className="material-symbols-outlined text-lg">add</span>
-          Nuovo Progetto
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={handleImport}
+            className="px-8 py-3.5 rounded-2xl font-bold border-2 border-outline-variant/20 text-on-surface-variant hover:bg-surface/50 transition-all active:scale-95 flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">upload</span>
+            Importa Progetto
+          </button>
+          <button
+            onClick={() => navigate('/projects/new')}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-500/20 hover:translate-y-[-2px] transition-all flex items-center gap-2 active:scale-95"
+          >
+            <span className="material-symbols-outlined text-lg">add</span>
+            Nuovo Progetto
+          </button>
+        </div>
       </div>
 
       <div className="glass-panel p-3 rounded-2xl flex flex-wrap items-center justify-between gap-4 border border-outline-variant/20">
-        <div className="flex items-center gap-1 bg-surface/50 p-1 rounded-xl shadow-inner">
-          {['Tutti', 'Attivo', 'Completato'].map(f => (
+        <div className="flex items-center gap-1 bg-surface/50 p-1 rounded-xl shadow-inner overflow-x-auto max-w-[500px]">
+          <button
+            onClick={() => setFilter('Tutti')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+              filter === 'Tutti' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'
+            }`}
+          >
+            Tutti
+          </button>
+          {['In corso', 'Pianificazione', 'Completato'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 filter === f ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
@@ -61,12 +110,28 @@ const Projects: React.FC = () => {
               <span className="material-symbols-outlined text-[20px]">view_list</span>
             </button>
           </div>
+
+          <div className="relative group">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none glass-panel px-6 py-2 rounded-xl text-sm font-bold border border-outline-variant/20 bg-surface/50 outline-none focus:ring-2 focus:ring-primary/20 text-on-surface-variant pr-10 cursor-pointer"
+            >
+              <option disabled>Filtra per</option>
+              <option>Nome</option>
+              <option>Data</option>
+              <option>Orario</option>
+              <option>Data di creazione</option>
+              <option>Stato</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">filter_list</span>
+          </div>
         </div>
       </div>
 
       {view === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredProjects.map(p => (
+          {sortedProjects.map(p => (
             <div
               key={p.id}
               className="glass-panel p-8 rounded-[2rem] group hover:shadow-2xl transition-all duration-500 border border-outline-variant/20 flex flex-col gap-6"
@@ -76,12 +141,6 @@ const Projects: React.FC = () => {
                   <span className="material-symbols-outlined text-3xl">rocket_launch</span>
                 </div>
                 <div className="flex gap-2">
-                   <button
-                    onClick={() => navigate(`/projects/${p.id}`)}
-                    className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                  >
-                    <span className="material-symbols-outlined">edit</span>
-                  </button>
                   <button
                     onClick={() => deleteProject(p.id)}
                     className="p-2 text-on-surface-variant hover:text-error transition-colors"
@@ -94,7 +153,7 @@ const Projects: React.FC = () => {
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-xl font-black text-on-surface">{p.name}</h3>
                   <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                    p.status === 'Attivo' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800' : 'bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                    p.status === 'Completato' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400'
                   }`}>
                     {p.status}
                   </span>
@@ -121,7 +180,7 @@ const Projects: React.FC = () => {
                 <div className="flex -space-x-3">
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="w-8 h-8 rounded-full bg-surface border-2 border-surface-container shadow-sm flex items-center justify-center text-[10px] font-black text-on-surface-variant">
-                      U{i}
+                      {String.fromCharCode(65 + i)}
                     </div>
                   ))}
                   {p.members_count > 3 && (
@@ -160,7 +219,7 @@ const Projects: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
-              {filteredProjects.map(p => (
+              {sortedProjects.map(p => (
                 <tr key={p.id} className="hover:bg-surface/30 transition-colors group">
                   <td className="px-8 py-6">
                     <div className="font-black text-on-surface">{p.name}</div>
@@ -168,7 +227,7 @@ const Projects: React.FC = () => {
                   </td>
                   <td className="px-8 py-6">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                      p.status === 'Attivo' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30' : 'bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800'
+                      p.status === 'Completato' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30' : 'bg-indigo-50 text-indigo-600 border-indigo-100 dark:bg-indigo-900/30'
                     }`}>
                       {p.status}
                     </span>

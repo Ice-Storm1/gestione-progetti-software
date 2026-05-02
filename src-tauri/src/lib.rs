@@ -23,6 +23,9 @@ pub struct Project {
     pub category: String,
     pub started_at: String,
     pub members_count: u32,
+    pub date: Option<String>,
+    pub time: Option<String>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -37,6 +40,7 @@ pub struct Task {
     pub time: String,
     pub risk: u8,
     pub project_id: Option<String>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -109,10 +113,13 @@ fn initial_data() -> AppData {
                 name: "Brand Identity 2024".into(),
                 description: "Ridefinizione completa dell'immagine coordinata.".into(),
                 progress: 65,
-                status: "Attivo".into(),
+                status: "In corso".into(),
                 category: "Sviluppo Web".into(),
                 started_at: "2024-01-12".into(),
                 members_count: 12,
+                date: Some("2024-01-12".into()),
+                time: Some("10:00".into()),
+                created_at: Some("2024-01-12T10:00:00Z".into()),
             },
         ],
         tasks: vec![],
@@ -137,6 +144,9 @@ fn get_projects(state: State<AppState>) -> Vec<Project> {
 fn create_project(app: AppHandle, state: State<AppState>, mut project: Project) -> Project {
     let mut data = state.0.lock().unwrap();
     project.id = Uuid::new_v4().to_string();
+    if project.created_at.is_none() {
+        project.created_at = Some(chrono::Utc::now().to_rfc3339());
+    }
     data.projects.push(project.clone());
     save_data(&app, &data);
     project
@@ -168,6 +178,9 @@ fn get_tasks(state: State<AppState>) -> Vec<Task> {
 fn create_task(app: AppHandle, state: State<AppState>, mut task: Task) -> Task {
     let mut data = state.0.lock().unwrap();
     task.id = Uuid::new_v4().to_string();
+    if task.created_at.is_none() {
+        task.created_at = Some(chrono::Utc::now().to_rfc3339());
+    }
     data.tasks.push(task.clone());
     save_data(&app, &data);
     task

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import Modal from '../components/Modal';
+import TaskForm from '../components/TaskForm';
 
 const Calendar: React.FC = () => {
   const { tasks } = useAppContext();
   const [currentDate] = useState(new Date(2024, 9, 1)); // Ottobre 2024
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
@@ -16,18 +19,24 @@ const Calendar: React.FC = () => {
   const days = [];
   // Prev month filler
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-    days.push({ day: prevMonthLastDay - i, current: false });
+    days.push({ day: prevMonthLastDay - i, current: false, monthOffset: -1 });
   }
   // Current month
   for (let i = 1; i <= daysInMonth; i++) {
-    days.push({ day: i, current: true });
+    days.push({ day: i, current: true, monthOffset: 0 });
   }
   // Next month filler
-  const totalSlots = 35;
+  const totalSlots = 42; // Standard 6 weeks
   const nextMonthFiller = totalSlots - days.length;
   for (let i = 1; i <= nextMonthFiller; i++) {
-    days.push({ day: i, current: false });
+    days.push({ day: i, current: false, monthOffset: 1 });
   }
+
+  const handleDayClick = (day: number, current: boolean, monthOffset: number) => {
+    if (!current) return;
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, day);
+    setSelectedDate(date.toISOString().split('T')[0]);
+  };
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
@@ -47,27 +56,29 @@ const Calendar: React.FC = () => {
 
       <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl">
         <div className="grid grid-cols-7 border-b border-outline-variant/10 bg-surface/30">
-          {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map(d => (
+          {['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'].map(d => (
             <div key={d} className="p-6 text-center text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">{d}</div>
           ))}
         </div>
 
         <div className="grid grid-cols-7 min-h-[700px] bg-outline-variant/5">
           {days.map((d, i) => {
-            const dayStr = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${d.day.toString().padStart(2, '0')}`;
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + d.monthOffset, d.day);
+            const dayStr = date.toISOString().split('T')[0];
             const dayTasks = tasks.filter(t => t.due_date === dayStr);
 
             return (
               <div
                 key={i}
-                className={`border-r border-b border-outline-variant/10 p-4 transition-all hover:bg-surface/40 group relative ${!d.current ? 'opacity-30 bg-outline-variant/5' : ''}`}
+                onClick={() => handleDayClick(d.day, d.current, d.monthOffset)}
+                className={`border-r border-b border-outline-variant/10 p-4 transition-all hover:bg-surface/40 group relative cursor-pointer ${!d.current ? 'opacity-30 bg-outline-variant/5' : ''}`}
               >
                 <span className={`text-sm font-black mb-3 block ${d.current ? 'text-on-surface' : 'text-on-surface-variant'}`}>{d.day}</span>
                 <div className="space-y-2">
                   {dayTasks.map(t => (
                     <div
                       key={t.id}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black truncate shadow-sm transition-transform hover:scale-105 cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black truncate shadow-sm transition-transform hover:scale-105 ${
                         t.priority === 'Alta' ? 'bg-rose-500 text-white' :
                         t.priority === 'Media' ? 'bg-indigo-500 text-white' :
                         'bg-emerald-500 text-white'
@@ -87,6 +98,19 @@ const Calendar: React.FC = () => {
           })}
         </div>
       </div>
+
+      {selectedDate && (
+        <Modal
+          isOpen={true}
+          onClose={() => setSelectedDate(null)}
+          title="Nuova Task"
+        >
+          <TaskForm
+            onCancel={() => setSelectedDate(null)}
+            taskToEdit={{ due_date: selectedDate }}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

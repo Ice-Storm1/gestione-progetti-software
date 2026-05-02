@@ -10,6 +10,9 @@ export interface Project {
   category: string;
   started_at: string;
   members_count: number;
+  date?: string;
+  time?: string;
+  createdAt?: string;
 }
 
 export interface Task {
@@ -22,6 +25,7 @@ export interface Task {
   time: string;
   risk: number;
   project_id?: string;
+  createdAt?: string;
 }
 
 export interface User {
@@ -131,7 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification('Progetto creato con successo', 'success');
         return newProject;
       } else {
-        const mockProject = { ...project, id: Math.random().toString() } as Project;
+        const mockProject = { ...project, id: Math.random().toString(), createdAt: new Date().toISOString() } as Project;
         setProjects((prev) => [...prev, mockProject]);
         addNotification('Progetto creato (Mock)', 'success');
         return mockProject;
@@ -175,7 +179,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification('Task creato con successo', 'success');
         return newTask;
       } else {
-        const mockTask = { ...task, id: Math.random().toString() } as Task;
+        const mockTask = { ...task, id: Math.random().toString(), createdAt: new Date().toISOString() } as Task;
         setTasks((prev) => [...prev, mockTask]);
         addNotification('Task creato (Mock)', 'success');
         return mockTask;
@@ -325,10 +329,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await Promise.all([refreshProjects(), refreshTasks()]);
         } else {
           setProjects([
-            { id: '1', name: 'Brand Identity 2024', description: 'Ridefinizione completa dell\'immagine coordinata per il lancio internazionale del Q3.', progress: 65, status: 'Attivo', category: 'Design', started_at: '2024-01-12', members_count: 12 }
+            { id: '1', name: 'Brand Identity 2024', description: 'Ridefinizione completa dell\'immagine coordinata per il lancio internazionale del Q3.', progress: 65, status: 'In corso', category: 'Design', started_at: '2024-01-12', members_count: 12, createdAt: '2024-01-12T10:00:00Z' }
           ]);
           setTasks([
-            { id: '1', title: 'Task Mock', description: 'Descrizione task mock', status: 'Da fare', priority: 'Media', due_date: '2024-10-12', time: '10:00', risk: 10, project_id: '1' }
+            { id: '1', title: 'Task Mock', description: 'Descrizione task mock', status: 'In corso', priority: 'Media', due_date: '2024-10-12', time: '10:00', risk: 10, project_id: '1', createdAt: '2024-10-12T10:00:00Z' }
           ]);
         }
       } catch (err) {

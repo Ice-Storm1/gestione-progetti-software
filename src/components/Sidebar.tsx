@@ -5,7 +5,7 @@ const Sidebar: React.FC = () => {
   const navItems = [
     { to: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
     { to: '/projects', icon: 'folder_managed', label: 'Progetti' },
-    { to: '/kanban', icon: 'assignment', label: 'Kanban' },
+    { to: '/kanban', icon: 'assignment', label: 'Tasks' },
     { to: '/calendar', icon: 'calendar_today', label: 'Calendario' },
   ];
 

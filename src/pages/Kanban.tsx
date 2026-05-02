@@ -1,18 +1,22 @@
-import React from 'react';
-import { useAppContext } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useAppContext, Task } from '../context/AppContext';
+import Modal from '../components/Modal';
+import TaskForm from '../components/TaskForm';
 
 interface KanbanProps {
   projectId?: string;
 }
 
 const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
-  const { tasks, updateTaskStatus, deleteTask } = useAppContext();
+  const { tasks, updateTaskStatus } = useAppContext();
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const columns = [
-    { id: 'Da fare', label: 'Da fare', color: 'bg-primary' },
+    { id: 'Idea', label: 'Idea', color: 'bg-slate-400' },
+    { id: 'Pianificazione', label: 'Pianificazione', color: 'bg-indigo-400' },
     { id: 'In corso', label: 'In corso', color: 'bg-amber-500' },
+    { id: 'In revisione', label: 'In revisione', color: 'bg-purple-500' },
     { id: 'Completati', label: 'Completati', color: 'bg-emerald-500' },
-    { id: 'Bloccati', label: 'Bloccati', color: 'bg-rose-500' },
   ];
 
   const projectTasks = projectId
@@ -33,13 +37,13 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
   };
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 min-h-[600px] ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
+    <div className={`flex gap-6 overflow-x-auto pb-6 min-h-[600px] ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
       {columns.map(col => (
         <div
           key={col.id}
           onDrop={(e) => handleDrop(e, col.id)}
           onDragOver={allowDrop}
-          className="flex flex-col gap-4 bg-surface/30 dark:bg-slate-800/30 p-4 rounded-3xl border border-outline-variant/10 shadow-inner"
+          className="flex-shrink-0 w-80 flex flex-col gap-4 bg-surface/30 dark:bg-slate-800/30 p-4 rounded-3xl border border-outline-variant/10 shadow-inner"
         >
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
@@ -58,6 +62,7 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
                 key={task.id}
                 draggable
                 onDragStart={(e) => handleDragStart(e, task.id)}
+                onClick={() => setEditingTask(task)}
                 className="glass-panel inner-glow rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all cursor-grab active:cursor-grabbing border border-outline-variant/10 bg-surface dark:bg-slate-800 group"
               >
                 <div className="flex justify-between items-start mb-4">
@@ -68,12 +73,6 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
                   }`}>
                     {task.priority}
                   </span>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="material-symbols-outlined text-outline hover:text-error transition-colors text-sm opacity-0 group-hover:opacity-100"
-                  >
-                    delete
-                  </button>
                 </div>
                 <h4 className="text-base font-black text-on-surface mb-3 line-clamp-2">{task.title}</h4>
                 <div className="flex items-center justify-between mt-auto">
@@ -98,6 +97,19 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
           </div>
         </div>
       ))}
+
+      {editingTask && (
+        <Modal
+          isOpen={true}
+          onClose={() => setEditingTask(null)}
+          title="Modifica Task"
+        >
+          <TaskForm
+            onCancel={() => setEditingTask(null)}
+            taskToEdit={editingTask}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

@@ -7,17 +7,22 @@ interface TopBarProps {
   onNewTask?: () => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
+const TopBar: React.FC<TopBarProps> = () => {
   const { user, searchQuery, setSearchQuery } = useAppContext();
   const location = useLocation();
 
   const isProjectsPage = location.pathname === '/projects';
 
   const getPageTitle = () => {
+    if (location.pathname === '/dashboard') return 'Dashboard';
+    if (location.pathname === '/projects') return 'Progetti';
+    if (location.pathname === '/tasks') return 'Tasks';
+    if (location.pathname === '/calendar') return 'Calendario';
+    if (location.pathname === '/settings') return 'Impostazioni';
+    if (location.pathname === '/notifications') return 'Notifiche';
+    if (location.pathname.includes('/projects/')) return 'Dettaglio Progetto';
+
     const path = location.pathname.split('/').pop() || 'Dashboard';
-    if (location.pathname.includes('/projects/')) {
-       return 'Dettaglio Progetto';
-    }
     return path.charAt(0).toUpperCase() + path.slice(1).replace('-', ' ');
   };
 
@@ -43,24 +48,6 @@ const TopBar: React.FC<TopBarProps> = ({ onNewProject, onNewTask }) => {
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onNewTask}
-            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all text-sm font-bold"
-          >
-            <span className="material-symbols-outlined text-lg">add_task</span>
-            Task
-          </button>
-          <button
-            onClick={onNewProject}
-            className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-95"
-          >
-            Nuovo Progetto
-          </button>
-        </div>
-
-        <div className="h-8 w-px bg-outline-variant/30 mx-2 hidden sm:block"></div>
-
         <div className="flex items-center gap-3">
           <Link to="/notifications" className="relative p-2 text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all">
             <span className="material-symbols-outlined">notifications</span>

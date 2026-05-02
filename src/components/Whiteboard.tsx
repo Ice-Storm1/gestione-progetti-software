@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { WhiteboardElement } from '../context/AppContext';
 
 interface WhiteboardProps {
@@ -7,175 +7,159 @@ interface WhiteboardProps {
 }
 
 const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tool, setTool] = useState<'pen' | 'eraser' | 'rect' | 'circle'>('pen');
+  const [color, setColor] = useState('#0058be');
   const [localElements, setLocalElements] = useState<WhiteboardElement[]>(elements);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setLocalElements(elements);
   }, [elements]);
 
-  const handleAddElement = (type: 'sticky' | 'node') => {
-    const newElement: WhiteboardElement = {
-      id: Math.random().toString(36).substr(2, 9),
-      x: 100 + Math.random() * 200,
-      y: 100 + Math.random() * 200,
-      text: type === 'sticky' ? 'Nuova nota...' : 'Nuovo nodo...',
-      element_type: type
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Resize canvas
+    const resize = () => {
+      canvas.width = canvas.parentElement?.clientWidth || 800;
+      canvas.height = canvas.parentElement?.clientHeight || 600;
+      redraw();
     };
-    const updated = [...localElements, newElement];
-    setLocalElements(updated);
-    onSave(updated);
-  };
 
-  const handleMouseDown = (e: React.MouseEvent, id: string) => {
-    const el = localElements.find(e => e.id === id);
-    if (!el) return;
-    setDraggingId(id);
-    setOffset({
-      x: e.clientX - el.x,
-      y: e.clientY - el.y
-    });
-  };
+    const redraw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingId) return;
-    const updated = localElements.map(el => {
-      if (el.id === draggingId) {
-        return {
-          ...el,
-          x: e.clientX - offset.x,
-          y: e.clientY - offset.y
-        };
+      // Draw grid
+      ctx.strokeStyle = 'rgba(0,0,0,0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < canvas.width; i += 20) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
       }
-      return el;
-    });
-    setLocalElements(updated);
-  };
+      for (let i = 0; i < canvas.height; i += 20) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+      }
 
-  const handleMouseUp = () => {
-    if (draggingId) {
-      onSave(localElements);
-      setDraggingId(null);
+      localElements.forEach(el => {
+        try {
+          const data = JSON.parse(el.text);
+          ctx.strokeStyle = data.color || '#000';
+          ctx.lineWidth = data.width || 2;
+
+          if (el.element_type === 'path') {
+            ctx.beginPath();
+            data.points.forEach((p: any, i: number) => {
+              if (i === 0) ctx.moveTo(p.x, p.y);
+              else ctx.lineTo(p.x, p.y);
+            });
+            ctx.stroke();
+          } else if (el.element_type === 'rect') {
+            ctx.strokeRect(data.x, data.y, data.w, data.h);
+          } else if (el.element_type === 'circle') {
+            ctx.beginPath();
+            ctx.arc(data.x, data.y, data.r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        } catch (e) {}
+      });
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [localElements]);
+
+  const startDrawing = (e: React.MouseEvent) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setIsDrawing(true);
+
+    if (tool === 'pen') {
+      const newEl: WhiteboardElement = {
+        id: Date.now().toString(),
+        x: 0, y: 0,
+        element_type: 'path',
+        text: JSON.stringify({ color, width: 3, points: [{ x, y }] })
+      };
+      setLocalElements([...localElements, newEl]);
     }
   };
 
-  const handleTextChange = (id: string, text: string) => {
-    const updated = localElements.map(el => el.id === id ? { ...el, text } : el);
-    setLocalElements(updated);
-    onSave(updated);
+  const draw = (e: React.MouseEvent) => {
+    if (!isDrawing) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (tool === 'pen') {
+      const last = localElements[localElements.length - 1];
+      const data = JSON.parse(last.text);
+      data.points.push({ x, y });
+      const updated = [...localElements];
+      updated[updated.length - 1] = { ...last, text: JSON.stringify(data) };
+      setLocalElements(updated);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    const updated = localElements.filter(el => el.id !== id);
-    setLocalElements(updated);
-    onSave(updated);
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    onSave(localElements);
+  };
+
+  const clear = () => {
+    setLocalElements([]);
+    onSave([]);
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full bg-white relative overflow-hidden glass-grid cursor-crosshair select-none"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      {/* SVG Background Lines (Simplified mock connectors) */}
-      <svg className="absolute inset-0 pointer-events-none w-full h-full opacity-10">
-        <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5"/>
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-      </svg>
-
-      {/* Toolbar */}
-      <div className="absolute top-6 left-6 z-10 flex flex-col gap-2">
-        <div className="glass-panel p-2 rounded-2xl border border-slate-200 shadow-xl flex flex-col gap-1 backdrop-blur-3xl bg-white/90">
+    <div className="w-full h-full bg-white relative flex flex-col">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 bg-white/80 backdrop-blur-xl p-2 rounded-2xl shadow-2xl border border-slate-200">
+        {[
+          { id: 'pen', icon: 'edit' },
+          { id: 'rect', icon: 'rectangle' },
+          { id: 'circle', icon: 'circle' },
+          { id: 'eraser', icon: 'ink_eraser' }
+        ].map(t => (
           <button
-            onClick={() => handleAddElement('sticky')}
-            title="Aggiungi Sticky Note"
-            className="p-3 text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+            key={t.id}
+            onClick={() => setTool(t.id as any)}
+            className={`p-3 rounded-xl transition-all ${tool === t.id ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}
           >
-            <span className="material-symbols-outlined text-3xl">sticky_note_2</span>
+            <span className="material-symbols-outlined">{t.icon}</span>
           </button>
-          <button
-            onClick={() => handleAddElement('node')}
-            title="Aggiungi Nodo"
-            className="p-3 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-          >
-            <span className="material-symbols-outlined text-3xl">account_tree</span>
-          </button>
-        </div>
+        ))}
+        <div className="w-px bg-slate-200 mx-2"></div>
+        <button onClick={clear} className="p-3 text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+          <span className="material-symbols-outlined">delete</span>
+        </button>
       </div>
 
-      {/* Elements */}
-      {localElements.map((el) => (
-        <div
-          key={el.id}
-          style={{
-            left: `${el.x}px`,
-            top: `${el.y}px`,
-            cursor: draggingId === el.id ? 'grabbing' : 'grab'
-          }}
-          className={`absolute p-4 transition-shadow group ${
-            el.element_type === 'sticky'
-              ? 'w-60 h-60 bg-yellow-100 shadow-lg rotate-1 flex flex-col'
-              : 'min-w-[200px] glass-panel rounded-2xl border-2 border-indigo-500/30'
-          } ${draggingId === el.id ? 'shadow-2xl scale-105 z-50' : 'z-10 shadow-md hover:shadow-xl'}`}
-          onMouseDown={(e) => handleMouseDown(e, el.id)}
-        >
+      <canvas
+        ref={canvasRef}
+        className="flex-1 cursor-crosshair touch-none"
+        onMouseDown={startDrawing}
+        onMouseMove={draw}
+        onMouseUp={stopDrawing}
+        onMouseLeave={stopDrawing}
+      />
+
+      <div className="absolute bottom-6 left-6 z-20 glass-panel p-2 rounded-2xl flex gap-2 border border-slate-200 shadow-xl">
+        {['#0058be', '#6b38d4', '#ba1a1a', '#22c55e', '#000000'].map(c => (
           <button
-            onClick={() => handleDelete(el.id)}
-            className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg flex items-center justify-center z-20"
-          >
-            <span className="material-symbols-outlined text-sm">close</span>
-          </button>
-
-          {el.element_type === 'sticky' ? (
-            <textarea
-              value={el.text}
-              onChange={(e) => handleTextChange(el.id, e.target.value)}
-              className="w-full h-full bg-transparent border-none resize-none outline-none font-medium text-slate-700 leading-relaxed text-lg"
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-indigo-600 border-b border-indigo-100 pb-2">
-                <span className="material-symbols-outlined text-lg">bolt</span>
-                <span className="text-[10px] font-black uppercase tracking-widest">Process Node</span>
-              </div>
-              <input
-                type="text"
-                value={el.text}
-                onChange={(e) => handleTextChange(el.id, e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-black text-slate-800 text-lg tracking-tight"
-                onMouseDown={(e) => e.stopPropagation()}
-              />
-            </div>
-          )}
-        </div>
-      ))}
-
-      {/* Minimap Mock */}
-      <div className="absolute bottom-6 right-6 w-48 h-32 glass-panel rounded-2xl border border-slate-200 shadow-2xl opacity-50 pointer-events-none overflow-hidden">
-        <div className="relative w-full h-full p-2">
-          {localElements.map(el => (
-            <div
-              key={el.id}
-              className={`absolute rounded-sm ${el.element_type === 'sticky' ? 'bg-yellow-400' : 'bg-indigo-400'}`}
-              style={{
-                left: `${(el.x / 2000) * 100}%`,
-                top: `${(el.y / 2000) * 100}%`,
-                width: '10px',
-                height: '10px'
-              }}
-            />
-          ))}
-          <span className="absolute top-1 left-2 text-[8px] font-black uppercase text-slate-400">Whiteboard Canvas</span>
-        </div>
+            key={c}
+            onClick={() => setColor(c)}
+            className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'border-primary scale-110' : 'border-transparent hover:scale-105'}`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
       </div>
     </div>
   );
