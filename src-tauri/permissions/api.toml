@@ -1,0 +1,19 @@
+[[permission]]
+identifier = "allow-api"
+description = "Allows access to all protype API commands"
+commands.allow = [
+    "get_projects",
+    "create_project",
+    "update_project",
+    "delete_project",
+    "get_tasks",
+    "create_task",
+    "update_task",
+    "delete_task",
+    "update_task_status",
+    "login",
+    "register",
+    "update_user",
+    "get_whiteboard",
+    "save_whiteboard"
+]

@@ -29,6 +29,10 @@ export interface User {
   role: string;
   avatar_url: string;
   email: string;
+  preferences: {
+    theme: 'light' | 'dark';
+    notificationsEnabled: boolean;
+  };
 }
 
 export interface WhiteboardElement {
@@ -45,18 +49,23 @@ interface AppContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   refreshProjects: () => Promise<void>;
   refreshTasks: () => Promise<void>;
   addProject: (project: Omit<Project, 'id'>) => Promise<Project>;
   updateProject: (project: Project) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   addTask: (task: Omit<Task, 'id'>) => Promise<Task>;
+  updateTask: (task: Task) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  register: (user: User, password: string) => Promise<void>;
+  register: (user: Omit<User, 'preferences'>, password: string) => Promise<void>;
   logout: () => void;
-  getWhiteboard: (projectId: string) => Promise<WhiteboardElement[]>;
-  saveWhiteboard: (projectId: string, elements: WhiteboardElement[]) => Promise<void>;
+  updateUser: (user: User) => Promise<void>;
+  getWhiteboard: (project_id: string) => Promise<WhiteboardElement[]>;
+  saveWhiteboard: (project_id: string, elements: WhiteboardElement[]) => Promise<void>;
   notifications: Notification[];
   addNotification: (message: string, type: 'success' | 'error' | 'info') => void;
   removeNotification: (id: number) => void;
@@ -78,6 +87,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const addNotification = useCallback((message: string, type: 'success' | 'error' | 'info') => {
     const id = Date.now();
@@ -136,12 +146,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       if (window.__TAURI_INTERNALS__) {
         await invoke('update_project', { project });
-        setProjects((prev) => prev.map(p => p.id === project.id ? project : p));
-        addNotification('Progetto aggiornato', 'success');
-      } else {
-        setProjects((prev) => prev.map(p => p.id === project.id ? project : p));
-        addNotification('Progetto aggiornato (Mock)', 'success');
       }
+      setProjects((prev) => prev.map(p => p.id === project.id ? project : p));
+      addNotification('Progetto aggiornato', 'success');
     } catch (err) {
       addNotification('Errore aggiornamento progetto', 'error');
     }
@@ -151,14 +158,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       if (window.__TAURI_INTERNALS__) {
         await invoke('delete_project', { id });
-        setProjects((prev) => prev.filter(p => p.id !== id));
-        setTasks((prev) => prev.filter(t => t.project_id !== id));
-        addNotification('Progetto eliminato', 'info');
-      } else {
-        setProjects((prev) => prev.filter(p => p.id !== id));
-        setTasks((prev) => prev.filter(t => t.project_id !== id));
-        addNotification('Progetto eliminato (Mock)', 'info');
       }
+      setProjects((prev) => prev.filter(p => p.id !== id));
+      setTasks((prev) => prev.filter(t => t.project_id !== id));
+      addNotification('Progetto eliminato', 'info');
     } catch (err) {
       addNotification('Errore eliminazione progetto', 'error');
     }
@@ -180,6 +183,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (err) {
       addNotification('Errore nella creazione del task', 'error');
       throw err;
+    }
+  };
+
+  const updateTask = async (task: Task) => {
+    try {
+      if (window.__TAURI_INTERNALS__) {
+        await invoke('update_task', { task });
+      }
+      setTasks((prev) => prev.map(t => t.id === task.id ? task : t));
+      addNotification('Task aggiornato', 'success');
+    } catch (err) {
+      addNotification('Errore aggiornamento task', 'error');
+    }
+  };
+
+  const deleteTask = async (id: string) => {
+    try {
+      if (window.__TAURI_INTERNALS__) {
+        await invoke('delete_task', { id });
+      }
+      setTasks((prev) => prev.filter(t => t.id !== id));
+      addNotification('Task eliminato', 'info');
+    } catch (err) {
+      addNotification('Errore eliminazione task', 'error');
     }
   };
 
@@ -206,7 +233,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification(`Bentornato, ${userData.name}`, 'info');
       } else {
         if (email === 'admin@protype.com' && password === 'admin') {
-          const mockUser = { name: 'Alessandro Rossi', role: 'Project Lead', avatar_url: '', email };
+          const mockUser: User = {
+            name: 'Alessandro Rossi',
+            role: 'Project Lead',
+            avatar_url: '',
+            email,
+            preferences: { theme: 'light', notificationsEnabled: true }
+          };
           setUser(mockUser);
           setIsAuthenticated(true);
         } else {
@@ -219,15 +252,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const register = async (userData: User, password: string) => {
+  const register = async (userData: Omit<User, 'preferences'>, password: string) => {
     try {
+      const fullUser: User = { ...userData, preferences: { theme: 'light', notificationsEnabled: true } };
       if (window.__TAURI_INTERNALS__) {
-        await invoke('register', { user: { ...userData, password } });
+        await invoke('register', { user: { ...fullUser, password } });
         addNotification('Registrazione completata! Accedi ora.', 'success');
+      } else {
+        addNotification('Registrazione mock completata', 'success');
       }
     } catch (err) {
       addNotification('Errore registrazione', 'error');
       throw err;
+    }
+  };
+
+  const updateUser = async (updatedUser: User) => {
+    try {
+      if (window.__TAURI_INTERNALS__) {
+        await invoke('update_user', { user: updatedUser });
+      }
+      setUser(updatedUser);
+      localStorage.setItem('protype_session', JSON.stringify(updatedUser));
+      addNotification('Profilo aggiornato', 'success');
+    } catch (err) {
+      addNotification('Errore aggiornamento profilo', 'error');
     }
   };
 
@@ -238,18 +287,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     addNotification('Disconnesso', 'info');
   };
 
-  const getWhiteboard = async (projectId: string) => {
+  const getWhiteboard = async (project_id: string) => {
     if (window.__TAURI_INTERNALS__) {
-      return await invoke<WhiteboardElement[]>('get_whiteboard', { projectId });
+      return await invoke<WhiteboardElement[]>('get_whiteboard', { project_id });
     }
     return [];
   };
 
-  const saveWhiteboard = async (projectId: string, elements: WhiteboardElement[]) => {
+  const saveWhiteboard = async (project_id: string, elements: WhiteboardElement[]) => {
     if (window.__TAURI_INTERNALS__) {
-      await invoke('save_whiteboard', { projectId, elements });
+      await invoke('save_whiteboard', { project_id, elements });
     }
   };
+
+  useEffect(() => {
+    if (user?.preferences.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [user?.preferences.theme]);
 
   useEffect(() => {
     const init = async () => {
@@ -291,16 +348,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         user,
         loading,
         isAuthenticated,
+        searchQuery,
+        setSearchQuery,
         refreshProjects,
         refreshTasks,
         addProject,
         updateProject,
         deleteProject,
         addTask,
+        updateTask,
+        deleteTask,
         updateTaskStatus,
         login,
         register,
         logout,
+        updateUser,
         getWhiteboard,
         saveWhiteboard,
         notifications,

@@ -6,6 +6,14 @@ use tauri::{AppHandle, Manager, State};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct UserPreferences {
+    pub theme: String,
+    pub notifications_enabled: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Project {
     pub id: String,
     pub name: String,
@@ -18,6 +26,7 @@ pub struct Project {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Task {
     pub id: String,
     pub title: String,
@@ -31,15 +40,18 @@ pub struct Task {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub name: String,
     pub role: String,
     pub avatar_url: String,
     pub email: String,
     pub password: Option<String>,
+    pub preferences: Option<UserPreferences>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct WhiteboardElement {
     pub id: String,
     pub x: f64,
@@ -49,6 +61,7 @@ pub struct WhiteboardElement {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct AppData {
     pub projects: Vec<Project>,
     pub tasks: Vec<Task>,
@@ -109,6 +122,7 @@ fn initial_data() -> AppData {
             email: "admin@protype.com".into(),
             password: Some("admin".into()),
             avatar_url: "".into(),
+            preferences: Some(UserPreferences { theme: "light".into(), notifications_enabled: true }),
         }],
         whiteboards: std::collections::HashMap::new(),
     }
@@ -141,6 +155,7 @@ fn update_project(app: AppHandle, state: State<AppState>, project: Project) {
 fn delete_project(app: AppHandle, state: State<AppState>, id: String) {
     let mut data = state.0.lock().unwrap();
     data.projects.retain(|p| p.id != id);
+    data.tasks.retain(|t| t.project_id.as_deref() != Some(&id));
     save_data(&app, &data);
 }
 
@@ -156,6 +171,22 @@ fn create_task(app: AppHandle, state: State<AppState>, mut task: Task) -> Task {
     data.tasks.push(task.clone());
     save_data(&app, &data);
     task
+}
+
+#[tauri::command]
+fn update_task(app: AppHandle, state: State<AppState>, task: Task) {
+    let mut data = state.0.lock().unwrap();
+    if let Some(t) = data.tasks.iter_mut().find(|t| t.id == task.id) {
+        *t = task;
+        save_data(&app, &data);
+    }
+}
+
+#[tauri::command]
+fn delete_task(app: AppHandle, state: State<AppState>, id: String) {
+    let mut data = state.0.lock().unwrap();
+    data.tasks.retain(|t| t.id != id);
+    save_data(&app, &data);
 }
 
 #[tauri::command]
@@ -185,13 +216,22 @@ fn register(app: AppHandle, state: State<AppState>, user: User) -> Result<User, 
 }
 
 #[tauri::command]
-fn get_whiteboard(state: State<AppState>, projectId: String) -> Vec<WhiteboardElement> {
+fn update_user(app: AppHandle, state: State<AppState>, user: User) {
+    let mut data = state.0.lock().unwrap();
+    if let Some(u) = data.users.iter_mut().find(|u| u.email == user.email) {
+        *u = user;
+        save_data(&app, &data);
+    }
+}
+
+#[tauri::command]
+fn get_whiteboard(state: State<AppState>, project_id: String) -> Vec<WhiteboardElement> {
     let data = state.0.lock().unwrap();
     data.whiteboards.get(&project_id).cloned().unwrap_or_default()
 }
 
 #[tauri::command]
-fn save_whiteboard(app: AppHandle, state: State<AppState>, projectId: String, elements: Vec<WhiteboardElement>) {
+fn save_whiteboard(app: AppHandle, state: State<AppState>, project_id: String, elements: Vec<WhiteboardElement>) {
     let mut data = state.0.lock().unwrap();
     data.whiteboards.insert(project_id, elements);
     save_data(&app, &data);
@@ -210,8 +250,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_projects, create_project, update_project, delete_project,
-            get_tasks, create_task, update_task_status,
-            login, register, get_whiteboard, save_whiteboard
+            get_tasks, create_task, update_task, delete_task, update_task_status,
+            login, register, update_user, get_whiteboard, save_whiteboard
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

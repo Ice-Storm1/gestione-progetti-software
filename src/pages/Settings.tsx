@@ -1,81 +1,116 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 
 const Settings: React.FC = () => {
-  const { user, addNotification } = useAppContext();
+  const { user, updateUser, logout } = useAppContext();
+  const [name, setName] = useState(user?.name || '');
+  const [theme, setTheme] = useState<'light' | 'dark'>(user?.preferences.theme || 'light');
+  const [notifications, setNotifications] = useState(user?.preferences.notificationsEnabled ?? true);
 
-  const handleSave = () => {
-    addNotification('Impostazioni salvate con successo', 'success');
+  const handleSave = async () => {
+    if (user) {
+      await updateUser({
+        ...user,
+        name,
+        preferences: {
+          theme,
+          notificationsEnabled: notifications
+        }
+      });
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header>
-        <h1 className="text-4xl font-bold text-on-background tracking-tight">Impostazioni Account</h1>
-        <p className="text-lg text-slate-500 mt-1">Gestisci le tue informazioni personali e le preferenze del profilo.</p>
-      </header>
-
-      <div className="glass-panel rounded-[2rem] p-10 flex flex-col gap-10">
-        <div className="flex items-center gap-8">
-          <div className="relative group">
-            <div className="w-32 h-32 rounded-full overflow-hidden glass-panel border-4 border-white/40 shadow-xl">
-              <img
-                src={user?.avatar_url || "https://lh3.googleusercontent.com/a/default-user"}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <button className="absolute bottom-0 right-0 bg-blue-600 text-white p-2.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all">
-              <span className="material-symbols-outlined text-sm">edit</span>
-            </button>
-          </div>
-          <div>
-            <h3 className="text-xl font-bold text-on-background">Foto Profilo</h3>
-            <p className="text-slate-500 text-sm mt-1">PNG o JPG, massimo 5MB.</p>
-            <button className="mt-3 text-blue-600 font-bold text-sm hover:underline">Modifica</button>
-          </div>
+    <div className="max-w-4xl mx-auto space-y-8 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight transition-colors">Impostazioni</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 transition-colors">Personalizza il tuo workspace elite.</p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Nome Completo</label>
-            <input
-              className="w-full bg-white/40 border border-white/20 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-              defaultValue={user?.name}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Email</label>
-            <input
-              className="w-full bg-white/40 border border-white/20 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-              defaultValue="alessandro.rossi@protype.com"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <button
-            onClick={handleSave}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
-          >
-            Salva Modifiche
-          </button>
-        </div>
+        <button
+          onClick={logout}
+          className="px-6 py-2 rounded-xl bg-error/10 text-error font-bold border border-error/20 hover:bg-error/20 transition-all active:scale-95"
+        >
+          Logout
+        </button>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 text-red-600 px-2">
-          <span className="material-symbols-outlined text-xl">warning</span>
-          <h2 className="text-lg font-bold">Zona Pericolo</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-6">
+          <section className="glass-panel p-8 rounded-3xl border border-white/40 shadow-lg bg-white/40 dark:bg-slate-800/40 transition-colors">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 transition-colors">
+              <span className="material-symbols-outlined">person</span>
+              Profilo Utente
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Nome Completo</label>
+                <input
+                  type="text"
+                  className="w-full bg-white/60 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/20 dark:text-white transition-colors"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 transition-colors">Email (non modificabile)</label>
+                <input
+                  type="text"
+                  disabled
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 text-slate-400 dark:text-slate-600 cursor-not-allowed transition-colors"
+                  value={user?.email}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="glass-panel p-8 rounded-3xl border border-white/40 shadow-lg bg-white/40 dark:bg-slate-800/40 transition-colors">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 transition-colors">
+              <span className="material-symbols-outlined">palette</span>
+              Aspetto & UI
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setTheme('light')}
+                className={`p-4 rounded-2xl border-2 transition-all ${theme === 'light' ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 dark:text-slate-400'}`}
+              >
+                <span className="material-symbols-outlined text-3xl mb-2">light_mode</span>
+                <p className="font-bold transition-colors">Light</p>
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                className={`p-4 rounded-2xl border-2 transition-all ${theme === 'dark' ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 dark:text-slate-400'}`}
+              >
+                <span className="material-symbols-outlined text-3xl mb-2">dark_mode</span>
+                <p className="font-bold transition-colors">Dark</p>
+              </button>
+            </div>
+          </section>
         </div>
-        <div className="glass-panel border-red-100 bg-red-50/10 rounded-[2rem] p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="max-w-md text-center md:text-left">
-            <h3 className="text-xl font-bold text-on-background">Elimina Account</h3>
-            <p className="text-slate-500 text-sm mt-2">Questa azione è permanente e comporterà la perdita di tutti i dati. Non è possibile tornare indietro.</p>
-          </div>
-          <button className="bg-red-50 hover:bg-red-100 text-red-600 px-8 py-3 rounded-xl font-bold border border-red-200 active:scale-95 transition-all flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm">delete_forever</span>
-            Elimina Account
+
+        <div className="space-y-6">
+          <section className="glass-panel p-6 rounded-3xl border border-white/40 shadow-lg bg-white/40 dark:bg-slate-800/40 transition-colors">
+            <h3 className="font-bold text-slate-900 dark:text-white mb-4 transition-colors">Notifiche</h3>
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={notifications}
+                  onChange={(e) => setNotifications(e.target.checked)}
+                />
+                <div className="w-12 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-indigo-600 transition-all"></div>
+                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-6 shadow-sm"></div>
+              </div>
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Abilita notifiche push</span>
+            </label>
+          </section>
+
+          <button
+            onClick={handleSave}
+            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all active:scale-95"
+          >
+            Salva Preferenze
           </button>
         </div>
       </div>

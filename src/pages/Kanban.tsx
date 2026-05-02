@@ -6,7 +6,7 @@ interface KanbanProps {
 }
 
 const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
-  const { tasks, updateTaskStatus } = useAppContext();
+  const { tasks, updateTaskStatus, deleteTask } = useAppContext();
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   const columns = [
@@ -71,8 +71,8 @@ const Kanban: React.FC<KanbanProps> = ({ projectId }) => {
                     }`}>
                       {task.priority}
                     </span>
-                    <button className="text-slate-300 group-hover:text-slate-500">
-                      <span className="material-symbols-outlined text-lg">more_horiz</span>
+                    <button onClick={() => deleteTask(task.id)} className="text-slate-200 hover:text-error transition-colors">
+                      <span className="material-symbols-outlined text-lg">delete</span>
                     </button>
                   </div>
                   <h4 className="font-bold text-slate-800 mb-2 leading-snug">{task.title}</h4>
