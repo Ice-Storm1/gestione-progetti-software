@@ -82,7 +82,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addNotification = useCallback((message: string, type: 'success' | 'error' | 'info') => {
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, message, type, status: 'active' }]);
-    // Auto-complete notification after 5s
     setTimeout(() => {
       setNotifications((prev) => prev.map(n => n.id === id ? { ...n, status: 'completed' } : n));
     }, 5000);
@@ -124,6 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         const mockProject = { ...project, id: Math.random().toString() } as Project;
         setProjects((prev) => [...prev, mockProject]);
+        addNotification('Progetto creato (Mock)', 'success');
         return mockProject;
       }
     } catch (err) {
@@ -138,6 +138,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await invoke('update_project', { project });
         setProjects((prev) => prev.map(p => p.id === project.id ? project : p));
         addNotification('Progetto aggiornato', 'success');
+      } else {
+        setProjects((prev) => prev.map(p => p.id === project.id ? project : p));
+        addNotification('Progetto aggiornato (Mock)', 'success');
       }
     } catch (err) {
       addNotification('Errore aggiornamento progetto', 'error');
@@ -151,6 +154,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setProjects((prev) => prev.filter(p => p.id !== id));
         setTasks((prev) => prev.filter(t => t.project_id !== id));
         addNotification('Progetto eliminato', 'info');
+      } else {
+        setProjects((prev) => prev.filter(p => p.id !== id));
+        setTasks((prev) => prev.filter(t => t.project_id !== id));
+        addNotification('Progetto eliminato (Mock)', 'info');
       }
     } catch (err) {
       addNotification('Errore eliminazione progetto', 'error');
@@ -167,6 +174,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       } else {
         const mockTask = { ...task, id: Math.random().toString() } as Task;
         setTasks((prev) => [...prev, mockTask]);
+        addNotification('Task creato (Mock)', 'success');
         return mockTask;
       }
     } catch (err) {
@@ -260,7 +268,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           await Promise.all([refreshProjects(), refreshTasks()]);
         } else {
           setProjects([
-            { id: '1', name: 'Brand Identity 2024', description: 'Descrizione mock', progress: 65, status: 'Attivo', category: 'Design', started_at: '2024-01-12', members_count: 5 }
+            { id: '1', name: 'Brand Identity 2024', description: 'Ridefinizione completa dell\'immagine coordinata per il lancio internazionale del Q3.', progress: 65, status: 'Attivo', category: 'Design', started_at: '2024-01-12', members_count: 12 }
           ]);
           setTasks([
             { id: '1', title: 'Task Mock', description: 'Descrizione task mock', status: 'Da fare', priority: 'Media', due_date: '2024-10-12', time: '10:00', risk: 10, project_id: '1' }

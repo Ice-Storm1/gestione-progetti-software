@@ -1,0 +1,8 @@
+{
+  "identifier": "allow-api",
+  "commands": [
+    "get_projects", "create_project", "update_project", "delete_project",
+    "get_tasks", "create_task", "update_task_status",
+    "login", "register", "get_whiteboard", "save_whiteboard"
+  ]
+}

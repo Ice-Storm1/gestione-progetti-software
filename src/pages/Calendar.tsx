@@ -113,7 +113,7 @@ const Calendar: React.FC = () => {
 
       {isModalOpen && (
         <TaskForm
-          onClose={() => setIsModalOpen(false)}
+          onCancel={() => setIsModalOpen(false)}
           initialDate={selectedDate}
         />
       )}
