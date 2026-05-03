@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucid
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Calendar: React.FC = () => {
-  const { tasks } = useAppContext();
+  const { tasks, updateTask } = useAppContext();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -46,6 +46,41 @@ const Calendar: React.FC = () => {
 
   const changeMonth = (offset: number) => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1));
+  };
+
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    e.dataTransfer.setData('taskId', taskId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetDateStr: string) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('taskId');
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const oldDue = new Date(task.due_date);
+      const oldStart = new Date(task.start_date || task.due_date);
+      const diffTime = Math.max(0, oldDue.getTime() - oldStart.getTime());
+
+      const newDue = new Date(targetDateStr);
+      const newStart = new Date(newDue.getTime() - diffTime);
+
+      const formatDate = (date: Date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      };
+
+      await updateTask({
+        ...task,
+        start_date: formatDate(newStart),
+        due_date: targetDateStr
+      });
+    }
   };
 
   return (
@@ -118,6 +153,8 @@ const Calendar: React.FC = () => {
               <div
                 key={i}
                 onClick={() => handleDayClick(d.day, d.current, d.monthOffset)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, dayStr)}
                 className={`group border-r border-b border-outline-variant/10 p-3 transition-all relative min-h-[120px] ${
                   !d.current ? 'opacity-20 grayscale bg-slate-100/10' : 'hover:bg-indigo-50/20 dark:hover:bg-indigo-900/5 cursor-pointer'
                 } ${isToday ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}
@@ -128,12 +165,6 @@ const Calendar: React.FC = () => {
                   }`}>
                     {d.day}
                   </span>
-
-                  {d.current && (
-                    <div className="w-6 h-6 rounded-lg bg-surface/50 border border-outline-variant/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-primary hover:text-white">
-                      <Plus size={14} />
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-1.5 overflow-y-auto max-h-[120px] custom-scrollbar pr-1">
@@ -144,9 +175,11 @@ const Calendar: React.FC = () => {
 
                     return (
                       <motion.div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, t.id)}
                         layoutId={`${t.id}-${dayStr}`}
                         key={t.id}
-                        className={`px-2.5 py-1.5 text-[9px] font-black truncate shadow-sm border border-black/5 flex items-center gap-2 group/task transition-all hover:scale-[1.02] active:scale-95 ${
+                        className={`px-2.5 py-1.5 text-[9px] font-black truncate shadow-sm border border-black/5 flex items-center gap-2 group/task transition-all hover:scale-[1.02] active:scale-95 cursor-grab active:cursor-grabbing ${
                           isMultiDay
                             ? `${isStart ? 'rounded-l-lg' : ''} ${isEnd ? 'rounded-r-lg' : ''} ${!isStart && !isEnd ? '' : ''} border-x-0`
                             : 'rounded-lg'

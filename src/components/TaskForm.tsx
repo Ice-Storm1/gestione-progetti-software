@@ -128,17 +128,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
           onChange={e => setFormData({...formData, time: e.target.value})}
         />
       </div>
-      <div className="col-span-2">
-        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Rischio ({formData.risk}%)</label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          className="w-full h-2 bg-outline-variant/20 rounded-lg appearance-none cursor-pointer accent-primary"
-          value={formData.risk}
-          onChange={e => setFormData({...formData, risk: parseInt(e.target.value)})}
-        />
-      </div>
       <div className="col-span-2 pt-4 flex gap-4">
         <button
           type="button"

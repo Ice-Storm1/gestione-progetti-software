@@ -36,6 +36,7 @@ pub struct Task {
     pub description: String,
     pub status: String,
     pub priority: String,
+    pub start_date: Option<String>,
     pub due_date: String,
     pub time: String,
     pub risk: u8,

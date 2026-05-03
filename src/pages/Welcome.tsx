@@ -50,9 +50,6 @@ const Welcome: React.FC = () => {
         </div>
       </div>
 
-      <footer className="mt-12 text-slate-400 text-xs font-bold tracking-widest uppercase opacity-60">
-        © 2024 Protype Elite Workspace • Tutti i diritti riservati
-      </footer>
     </div>
   );
 };

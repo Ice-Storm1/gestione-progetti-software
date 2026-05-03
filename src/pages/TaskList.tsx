@@ -34,7 +34,6 @@ const TaskList: React.FC<TaskListProps> = ({ projectId }) => {
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Stato</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Priorità</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Scadenza</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">Rischio</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/5">
@@ -69,14 +68,6 @@ const TaskList: React.FC<TaskListProps> = ({ projectId }) => {
                   </td>
                   <td className="px-8 py-6 text-sm font-bold text-on-surface-variant">
                     {task.due_date}
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                       <div className="w-20 h-1.5 bg-outline-variant/10 rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${task.risk}%` }}></div>
-                       </div>
-                       <span className="text-[10px] font-black text-on-surface-variant">{task.risk}%</span>
-                    </div>
                   </td>
                 </tr>
               )) : (

@@ -5,7 +5,7 @@ import { STATUSES } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Projects: React.FC = () => {
-  const { projects, addProject, deleteProject } = useAppContext();
+  const { projects, addProject, deleteProject, searchQuery } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -32,8 +32,9 @@ const Projects: React.FC = () => {
   }, []);
 
   const filteredProjects = projects.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         p.description.toLowerCase().includes(filters.search.toLowerCase());
+    const query = (filters.search || searchQuery).toLowerCase();
+    const matchesSearch = p.name.toLowerCase().includes(query) ||
+                         p.description.toLowerCase().includes(query);
     const matchesStatus = filters.status === 'Tutti' || p.status === filters.status;
     const matchesDate = !filters.date || p.date === filters.date;
     const matchesTime = !filters.time || (p.time && p.time.startsWith(filters.time));
@@ -120,9 +121,9 @@ const Projects: React.FC = () => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full left-0 mt-4 w-96 glass-panel p-8 rounded-[2.5rem] shadow-2xl border border-white/40 z-50 overflow-hidden backdrop-blur-3xl"
+                  className="absolute top-full left-0 mt-4 w-80 glass-panel p-6 rounded-[2rem] shadow-2xl border border-white/40 z-[60] overflow-hidden backdrop-blur-3xl"
                 >
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-5">
                     {/* Search Input */}
                     <div className="flex flex-col gap-2">
                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Cerca</label>

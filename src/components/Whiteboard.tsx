@@ -23,6 +23,18 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Set canvas dimensions
+    const resizeCanvas = () => {
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+      }
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
     const rc = rough.canvas(canvas);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -72,6 +84,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
     };
 
     redraw();
+    return () => window.removeEventListener('resize', resizeCanvas);
   }, [localElements]);
 
   const startDrawing = (e: React.MouseEvent) => {

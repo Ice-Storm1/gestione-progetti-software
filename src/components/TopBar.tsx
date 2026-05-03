@@ -73,9 +73,9 @@ const TopBar: React.FC<TopBarProps> = () => {
             </button>
 
             {showNotifications && (
-              <div className="absolute top-full right-0 mt-3 w-80 glass-panel rounded-[2rem] shadow-2xl border border-white/40 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="p-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface/50">
-                  <h3 className="font-black text-on-surface">Notifiche</h3>
+              <div className="absolute top-full right-0 mt-3 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-outline-variant/20 z-[60] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface/80">
+                  <h3 className="font-black text-on-surface text-lg">Notifiche</h3>
                   <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-black">{notifications.length}</span>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
@@ -86,9 +86,9 @@ const TopBar: React.FC<TopBarProps> = () => {
                   ) : (
                     <div className="divide-y divide-outline-variant/5">
                       {notifications.map((n) => (
-                        <div key={n.id} className="p-4 hover:bg-surface/30 transition-colors flex gap-3 group relative">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                            n.type === 'success' ? 'bg-green-50 text-green-600' : n.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                        <div key={n.id} className="p-4 hover:bg-surface/50 border-b border-outline-variant/5 transition-colors flex gap-3 group relative">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            n.type === 'success' ? 'bg-green-100 text-green-700' : n.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                           }`}>
                             <span className="material-symbols-outlined text-sm">
                               {n.type === 'success' ? 'check_circle' : n.type === 'error' ? 'report' : 'info'}

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAppContext, Project, WhiteboardElement } from '../context/AppContext';
+import { useAppContext, Project, WhiteboardElement, Task } from '../context/AppContext';
 import TaskList from './TaskList';
 import Whiteboard from '../components/Whiteboard';
 import { STATUSES } from '../constants';
+import Modal from '../components/Modal';
+import TaskForm from '../components/TaskForm';
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +14,7 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'roadmap' | 'whiteboard' | 'settings'>('overview');
   const [whiteboardElements, setWhiteboardElements] = useState<WhiteboardElement[]>([]);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
     const p = projects.find(p => p.id === id);
@@ -214,7 +217,10 @@ const ProjectDetail: React.FC = () => {
                       }`}>
                         <span className="material-symbols-outlined text-sm">{t.status === 'Completato' ? 'check' : 'schedule'}</span>
                       </div>
-                      <div className="flex-1 bg-surface-container-low/50 dark:bg-slate-900/30 p-6 rounded-2xl border border-outline-variant/10 hover:shadow-lg transition-all group cursor-default">
+                      <div
+                        onClick={() => setEditingTask(t)}
+                        className="flex-1 bg-surface-container-low/50 dark:bg-slate-900/30 p-6 rounded-2xl border border-outline-variant/10 hover:shadow-lg transition-all group cursor-pointer"
+                      >
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-black text-on-surface group-hover:text-primary transition-colors text-lg">{t.title}</h4>
                           <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
@@ -317,7 +323,20 @@ const ProjectDetail: React.FC = () => {
             </form>
           </div>
         )}
-      </div>
+      {editingTask && (
+        <Modal
+          isOpen={true}
+          onClose={() => setEditingTask(null)}
+          title="Modifica Task"
+          description="Aggiorna i dettagli dell'attività"
+        >
+          <TaskForm
+            onCancel={() => setEditingTask(null)}
+            projectId={project.id}
+            taskToEdit={editingTask}
+          />
+        </Modal>
+      )}
     </div>
   );
 };
