@@ -21,6 +21,7 @@ export interface Task {
   description: string;
   status: string;
   priority: string;
+  start_date?: string;
   due_date: string;
   time: string;
   risk: number;
@@ -74,6 +75,7 @@ interface AppContextType {
   notifications: Notification[];
   addNotification: (message: string, type: 'success' | 'error' | 'info') => void;
   removeNotification: (id: number) => void;
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
 }
 
 export interface Notification {
@@ -98,8 +100,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const id = Date.now();
     setNotifications((prev) => [...prev, { id, message, type, status: 'active' }]);
     setTimeout(() => {
-      setNotifications((prev) => prev.map(n => n.id === id ? { ...n, status: 'completed' } : n));
-    }, 3000); // Updated to 3000ms
+      setNotifications((prev) => prev.filter(n => n.id !== id));
+    }, 3000);
   }, []);
 
   const removeNotification = useCallback((id: number) => {
@@ -371,6 +373,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getWhiteboard,
         saveWhiteboard,
         notifications,
+        setNotifications,
         addNotification,
         removeNotification,
       }}

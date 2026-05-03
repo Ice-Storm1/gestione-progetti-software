@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const Calendar: React.FC = () => {
   const { tasks } = useAppContext();
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 9, 1)); // Ottobre 2024
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
@@ -103,7 +103,12 @@ const Calendar: React.FC = () => {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + d.monthOffset, d.day);
             const dayStr = date.toISOString().split('T')[0];
             const isToday = dayStr === new Date().toISOString().split('T')[0];
-            const dayTasks = tasks.filter(t => t.due_date === dayStr);
+
+            // Filter tasks active on this day
+            const dayTasks = tasks.filter(t => {
+              const start = t.start_date || t.due_date;
+              return dayStr >= start && dayStr <= t.due_date;
+            });
 
             return (
               <div
@@ -127,21 +132,31 @@ const Calendar: React.FC = () => {
                   )}
                 </div>
 
-                <div className="space-y-1.5 overflow-y-auto max-h-[100px] custom-scrollbar pr-1">
-                  {dayTasks.map(t => (
-                    <motion.div
-                      layoutId={t.id}
-                      key={t.id}
-                      className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black truncate shadow-sm border border-black/5 flex items-center gap-2 group/task transition-all hover:scale-[1.02] active:scale-95 ${
-                        t.priority === 'Alta' ? 'bg-rose-500 text-white shadow-rose-500/20' :
-                        t.priority === 'Media' ? 'bg-indigo-500 text-white shadow-indigo-500/20' :
-                        'bg-emerald-500 text-white shadow-emerald-500/20'
-                      }`}
-                    >
-                      <div className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
-                      {t.title}
-                    </motion.div>
-                  ))}
+                <div className="space-y-1.5 overflow-y-auto max-h-[120px] custom-scrollbar pr-1">
+                  {dayTasks.map(t => {
+                    const isStart = dayStr === (t.start_date || t.due_date);
+                    const isEnd = dayStr === t.due_date;
+                    const isMultiDay = (t.start_date || t.due_date) !== t.due_date;
+
+                    return (
+                      <motion.div
+                        layoutId={`${t.id}-${dayStr}`}
+                        key={t.id}
+                        className={`px-2.5 py-1.5 text-[9px] font-black truncate shadow-sm border border-black/5 flex items-center gap-2 group/task transition-all hover:scale-[1.02] active:scale-95 ${
+                          isMultiDay
+                            ? `${isStart ? 'rounded-l-lg' : ''} ${isEnd ? 'rounded-r-lg' : ''} ${!isStart && !isEnd ? '' : ''} border-x-0`
+                            : 'rounded-lg'
+                        } ${
+                          t.priority === 'Alta' ? 'bg-rose-500 text-white shadow-rose-500/20' :
+                          t.priority === 'Media' ? 'bg-indigo-500 text-white shadow-indigo-500/20' :
+                          'bg-emerald-500 text-white shadow-emerald-500/20'
+                        }`}
+                      >
+                        {isStart && <div className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />}
+                        {(isStart || !isMultiDay) ? t.title : <span className="opacity-0">.</span>}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             );

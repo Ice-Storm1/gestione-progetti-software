@@ -10,7 +10,7 @@ const ProjectDetail: React.FC = () => {
   const navigate = useNavigate();
   const { projects, tasks, updateProject, deleteProject, getWhiteboard, saveWhiteboard } = useAppContext();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'whiteboard' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'roadmap' | 'whiteboard' | 'settings'>('overview');
   const [whiteboardElements, setWhiteboardElements] = useState<WhiteboardElement[]>([]);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ const ProjectDetail: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-surface/40 backdrop-blur-md p-1.5 rounded-2xl border border-outline-variant/10 w-fit self-center z-20">
-        {(['overview', 'tasks', 'whiteboard', 'settings'] as const).map((tab) => (
+        {(['overview', 'tasks', 'roadmap', 'whiteboard', 'settings'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -111,7 +111,7 @@ const ProjectDetail: React.FC = () => {
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/40'
             }`}
           >
-            {tab === 'overview' ? 'Panoramica' : (tab === 'tasks' ? 'Tasks' : tab === 'settings' ? 'Impostazioni' : tab)}
+            {tab === 'overview' ? 'Panoramica' : (tab === 'tasks' ? 'Tasks' : tab === 'roadmap' ? 'Roadmap' : tab === 'settings' ? 'Impostazioni' : tab)}
           </button>
         ))}
       </div>
@@ -187,6 +187,76 @@ const ProjectDetail: React.FC = () => {
         )}
 
         {activeTab === 'tasks' && <TaskList projectId={id} />}
+
+        {activeTab === 'roadmap' && (
+          <div className="glass-panel p-8 rounded-3xl border border-outline-variant/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <div className="flex items-center justify-between mb-8">
+               <h3 className="text-xl font-black text-on-surface">Cronoprogramma Progetto</h3>
+               <div className="flex gap-3 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Completato</span>
+                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500" /> In Corso</span>
+                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-300" /> Pianificato</span>
+               </div>
+             </div>
+
+             {projectTasks.length === 0 ? (
+               <div className="py-20 text-center bg-surface/30 rounded-3xl border-2 border-dashed border-outline-variant/10">
+                 <p className="text-on-surface-variant font-black uppercase tracking-widest text-sm">Nessuna attività pianificata</p>
+               </div>
+             ) : (
+               <div className="space-y-8 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-outline-variant/20">
+                  {projectTasks.sort((a, b) => (a.start_date || a.due_date).localeCompare(b.start_date || b.due_date)).map((t, i) => (
+                    <div key={t.id} className="flex gap-6 relative">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 border-4 border-surface shadow-md transition-all ${
+                        t.status === 'Completato' ? 'bg-emerald-500 text-white' :
+                        t.status === 'In corso' ? 'bg-indigo-500 text-white' :
+                        'bg-slate-200 text-slate-500'
+                      }`}>
+                        <span className="material-symbols-outlined text-sm">{t.status === 'Completato' ? 'check' : 'schedule'}</span>
+                      </div>
+                      <div className="flex-1 bg-surface-container-low/50 dark:bg-slate-900/30 p-6 rounded-2xl border border-outline-variant/10 hover:shadow-lg transition-all group cursor-default">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-black text-on-surface group-hover:text-primary transition-colors text-lg">{t.title}</h4>
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                             t.priority === 'Alta' ? 'bg-rose-500 text-white' :
+                             t.priority === 'Media' ? 'bg-indigo-500 text-white' :
+                             'bg-emerald-500 text-white'
+                          }`}>{t.priority}</span>
+                        </div>
+                        <p className="text-sm text-on-surface-variant line-clamp-2 mb-4 leading-relaxed font-medium">
+                          {t.description || 'Nessun dettaglio aggiuntivo.'}
+                        </p>
+                        <div className="flex justify-between items-end">
+                          <div className="flex gap-6">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[8px] font-black text-outline uppercase tracking-widest">Inizio</span>
+                              <span className="text-xs font-black text-on-surface flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-sm text-primary">calendar_today</span>
+                                {t.start_date || t.due_date}
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[8px] font-black text-outline uppercase tracking-widest">Scadenza</span>
+                              <span className="text-xs font-black text-on-surface flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-sm text-rose-500">flag</span>
+                                {t.due_date}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[8px] font-black text-outline uppercase tracking-widest">Stato</span>
+                            <span className="px-3 py-1 bg-white dark:bg-slate-800 rounded-lg border border-outline-variant/10 text-[10px] font-black text-on-surface shadow-sm">
+                              {t.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+               </div>
+             )}
+          </div>
+        )}
 
         {activeTab === 'whiteboard' && (
           <div className="h-[700px] w-full rounded-3xl overflow-hidden border border-outline-variant/20 shadow-2xl relative bg-white animate-in zoom-in-95 duration-500">

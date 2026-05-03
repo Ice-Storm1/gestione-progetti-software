@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -8,10 +8,22 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = () => {
-  const { user, searchQuery, setSearchQuery } = useAppContext();
+  const { user, searchQuery, setSearchQuery, notifications, removeNotification, setNotifications } = useAppContext();
   const location = useLocation();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
   const isProjectsPage = location.pathname === '/projects';
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getPageTitle = () => {
     if (location.pathname === '/dashboard') return 'Dashboard';
@@ -19,7 +31,6 @@ const TopBar: React.FC<TopBarProps> = () => {
     if (location.pathname === '/kanban') return 'Tasks';
     if (location.pathname === '/calendar') return 'Calendario';
     if (location.pathname === '/settings') return 'Impostazioni';
-    if (location.pathname === '/notifications') return 'Notifiche';
     if (location.pathname === '/support') return 'Supporto';
     if (location.pathname.includes('/projects/')) return 'Dettaglio Progetto';
 
@@ -50,10 +61,67 @@ const TopBar: React.FC<TopBarProps> = () => {
 
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3">
-          <Link to="/notifications" className="relative p-2 text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all">
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-surface"></span>
-          </Link>
+          <div className="relative" ref={notificationRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 text-on-surface-variant hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all"
+            >
+              <span className="material-symbols-outlined">notifications</span>
+              {notifications.length > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-surface"></span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute top-full right-0 mt-3 w-80 glass-panel rounded-[2rem] shadow-2xl border border-white/40 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="p-5 border-b border-outline-variant/10 flex justify-between items-center bg-surface/50">
+                  <h3 className="font-black text-on-surface">Notifiche</h3>
+                  <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-black">{notifications.length}</span>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <p className="text-sm font-bold text-on-surface-variant">Nessuna nuova notifica</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-outline-variant/5">
+                      {notifications.map((n) => (
+                        <div key={n.id} className="p-4 hover:bg-surface/30 transition-colors flex gap-3 group relative">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            n.type === 'success' ? 'bg-green-50 text-green-600' : n.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                          }`}>
+                            <span className="material-symbols-outlined text-sm">
+                              {n.type === 'success' ? 'check_circle' : n.type === 'error' ? 'report' : 'info'}
+                            </span>
+                          </div>
+                          <div className="flex-1 pr-6">
+                            <p className="text-xs font-bold text-on-surface line-clamp-2">{n.message}</p>
+                            <p className="text-[9px] font-black text-outline uppercase tracking-widest mt-1">Appena ora</p>
+                          </div>
+                          <button
+                            onClick={() => removeNotification(n.id)}
+                            className="absolute top-4 right-4 p-1 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-xs">close</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {notifications.length > 0 && (
+                  <div className="p-3 bg-surface/30 border-t border-outline-variant/10 text-center">
+                    <button
+                      onClick={() => setNotifications([])}
+                      className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
+                    >
+                      Segna tutte come lette
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-3 border-l border-outline-variant/30 pl-4">
             <div className="text-right hidden sm:block">

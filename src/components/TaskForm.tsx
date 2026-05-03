@@ -16,6 +16,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
     description: taskToEdit?.description || '',
     status: taskToEdit?.status || 'Idea',
     priority: taskToEdit?.priority || 'Media',
+    start_date: taskToEdit?.start_date || taskToEdit?.due_date || new Date().toISOString().split('T')[0],
     due_date: taskToEdit?.due_date || new Date().toISOString().split('T')[0],
     time: taskToEdit?.time || '12:00',
     risk: taskToEdit?.risk || 0,
@@ -99,6 +100,15 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
             </label>
           ))}
         </div>
+      </div>
+      <div>
+        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Data Inizio</label>
+        <input
+          type="date"
+          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
+          value={formData.start_date}
+          onChange={e => setFormData({...formData, start_date: e.target.value})}
+        />
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Data Scadenza</label>

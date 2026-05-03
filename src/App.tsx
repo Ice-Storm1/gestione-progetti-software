@@ -10,7 +10,6 @@ import Welcome from './pages/Welcome';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import TaskList from './pages/TaskList';
-import Notifications from './pages/Notifications';
 import Support from './pages/Support';
 import { AppProvider, useAppContext } from './context/AppContext';
 
@@ -46,7 +45,6 @@ const AppContent: React.FC = () => {
         <Route path="/kanban" element={<TaskList />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/notifications" element={<Notifications />} />
         <Route path="/support" element={<Support />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
