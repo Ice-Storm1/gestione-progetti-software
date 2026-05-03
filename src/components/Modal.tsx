@@ -59,7 +59,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, description, chil
             </div>
 
             {/* Content */}
-            <div className="p-8 pt-0 overflow-y-auto flex-1 custom-scrollbar">
+            <div className="p-8 pt-0 overflow-visible flex-1 custom-scrollbar">
               {children}
             </div>
           </motion.div>

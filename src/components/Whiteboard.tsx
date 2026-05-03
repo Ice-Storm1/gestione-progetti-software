@@ -72,10 +72,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
           } else if (el.element_type === 'rect') {
             rc.rectangle(data.x, data.y, data.w, data.h, roughOptions);
           } else if (el.element_type === 'circle') {
-            const centerX = data.x + data.w / 2;
-            const centerY = data.y + data.h / 2;
-            const radius = Math.sqrt(data.w ** 2 + data.h ** 2) / 2;
-            rc.circle(centerX, centerY, radius * 2, roughOptions);
+            rc.ellipse(data.x + data.w / 2, data.y + data.h / 2, data.w, data.h, roughOptions);
           }
         } catch (e) {
           console.error("Redraw error", e);
@@ -125,8 +122,68 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
       ctx.lineTo(x, y);
       ctx.stroke();
     } else {
-      // Shape preview (optional, but let's keep it simple and just draw on stop for now
-      // or we can add a basic preview)
+      // Shape preview
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rc = rough.canvas(canvas);
+      const roughOptions: any = {
+        stroke: color,
+        strokeWidth: 2,
+        roughness: 1.2,
+        seed: 1,
+      };
+
+      // We need to redraw everything + the current preview
+      // But clearing everything and redrawing is heavy on every mouse move
+      // Simple optimization: only redraw on shape tools
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Redraw grid
+        ctx.strokeStyle = 'rgba(0,0,0,0.03)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < canvas.width; i += 40) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+        }
+        for (let i = 0; i < canvas.height; i += 40) {
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+        }
+
+        // Redraw existing
+        localElements.forEach(el => {
+          try {
+            const data = JSON.parse(el.text);
+            const isEraser = data.color === '#ffffff';
+            const elOptions = {
+              ...roughOptions,
+              stroke: data.color,
+              strokeWidth: data.width || 2,
+              roughness: isEraser ? 0 : 1.2,
+              seed: parseInt(el.id) % 1000,
+            };
+            if (el.element_type === 'path') rc.linearPath(data.points.map((p: any) => [p.x, p.y]), elOptions);
+            else if (el.element_type === 'rect') rc.rectangle(data.x, data.y, data.w, data.h, elOptions);
+            else if (el.element_type === 'circle') {
+              const cx = data.x + data.w / 2; const cy = data.y + data.h / 2;
+              const r = Math.sqrt(data.w ** 2 + data.h ** 2) / 2;
+              rc.circle(cx, cy, r * 2, elOptions);
+            }
+          } catch(e) {}
+        });
+
+        // Draw preview
+        if (tool === 'rect') {
+          rc.rectangle(Math.min(startPoint.x, x), Math.min(startPoint.y, y), Math.abs(x - startPoint.x), Math.abs(y - startPoint.y), roughOptions);
+        } else if (tool === 'circle') {
+          rc.ellipse(
+            Math.min(startPoint.x, x) + Math.abs(x - startPoint.x) / 2,
+            Math.min(startPoint.y, y) + Math.abs(y - startPoint.y) / 2,
+            Math.abs(x - startPoint.x),
+            Math.abs(y - startPoint.y),
+            roughOptions
+          );
+        }
+      }
     }
   };
 

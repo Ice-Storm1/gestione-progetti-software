@@ -110,7 +110,7 @@ const ProjectDetail: React.FC = () => {
               activeTab === tab ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface/40'
             }`}
           >
-            {tab === 'overview' ? 'Panoramica' : tab === 'tasks' ? 'Tasks' : tab === 'roadmap' ? 'Roadmap' : tab === 'settings' ? 'Impostazioni' : tab}
+            {tab === 'overview' ? 'Panoramica' : tab === 'tasks' ? 'Task' : tab === 'roadmap' ? 'Roadmap' : tab === 'settings' ? 'Impostazioni' : tab}
           </button>
         ))}
       </div>
@@ -174,7 +174,7 @@ const ProjectDetail: React.FC = () => {
 
         {activeTab === 'roadmap' && (
           <div className="glass-panel p-8 rounded-3xl border border-outline-variant/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h3 className="text-xl font-black text-on-surface mb-8">Cronoprogramma Progetto</h3>
+            <h3 className="text-xl font-black text-on-surface mb-8">Roadmap Progetto</h3>
             {sortedTasks.length === 0 ? (
               <div className="py-20 text-center bg-surface/30 rounded-3xl border-2 border-dashed border-outline-variant/10">
                 <p className="text-on-surface-variant font-black uppercase tracking-widest text-sm">Nessuna attività pianificata</p>

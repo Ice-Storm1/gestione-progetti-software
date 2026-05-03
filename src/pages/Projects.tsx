@@ -121,7 +121,7 @@ const Projects: React.FC = () => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full left-0 mt-4 w-80 glass-panel p-6 rounded-[2rem] shadow-2xl border border-white/40 z-[60] overflow-hidden backdrop-blur-3xl"
+                  className="absolute top-full left-0 mt-4 w-80 bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/40 z-[70] overflow-visible backdrop-blur-3xl"
                 >
                   <div className="flex flex-col gap-5">
                     {/* Search Input */}
@@ -146,12 +146,12 @@ const Projects: React.FC = () => {
                         <select
                           value={filters.status}
                           onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                          className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all pr-10 text-on-surface"
+                          className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-2xl px-5 py-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/10 transition-all pr-12 text-on-surface shadow-sm"
                         >
                           <option>Tutti</option>
-                          {STATUSES.map(s => <option key={s}>{s}</option>)}
+                          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
-                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xl">expand_more</span>
                       </div>
                     </div>
 
@@ -159,21 +159,25 @@ const Projects: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Data</label>
-                        <input
-                          type="date"
-                          value={filters.date}
-                          onChange={(e) => setFilters({ ...filters, date: e.target.value })}
-                          className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
-                        />
+                        <div className="relative">
+                          <input
+                            type="date"
+                            value={filters.date}
+                            onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                            className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3.5 text-xs font-black outline-none focus:ring-4 focus:ring-primary/10 transition-all text-on-surface shadow-sm"
+                          />
+                        </div>
                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Orario</label>
-                        <input
-                          type="time"
-                          value={filters.time}
-                          onChange={(e) => setFilters({ ...filters, time: e.target.value })}
-                          className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
-                        />
+                        <div className="relative">
+                          <input
+                            type="time"
+                            value={filters.time}
+                            onChange={(e) => setFilters({ ...filters, time: e.target.value })}
+                            className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3.5 text-xs font-black outline-none focus:ring-4 focus:ring-primary/10 transition-all text-on-surface shadow-sm"
+                          />
+                        </div>
                       </div>
                     </div>
 

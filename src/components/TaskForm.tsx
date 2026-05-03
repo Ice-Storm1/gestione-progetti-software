@@ -63,24 +63,30 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Progetto</label>
-        <select
-          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface appearance-none"
-          value={formData.project_id}
-          onChange={e => setFormData({...formData, project_id: e.target.value})}
-          disabled={!!projectId && !taskToEdit}
-        >
-          {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+        <div className="relative">
+          <select
+            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface appearance-none font-bold text-sm shadow-sm"
+            value={formData.project_id}
+            onChange={e => setFormData({...formData, project_id: e.target.value})}
+            disabled={!!projectId && !taskToEdit}
+          >
+            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">expand_more</span>
+        </div>
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Stato</label>
-        <select
-          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface appearance-none"
-          value={formData.status}
-          onChange={e => setFormData({...formData, status: e.target.value})}
-        >
-          {STATUSES.map(s => <option key={s}>{s}</option>)}
-        </select>
+        <div className="relative">
+          <select
+            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface appearance-none font-bold text-sm shadow-sm"
+            value={formData.status}
+            onChange={e => setFormData({...formData, status: e.target.value})}
+          >
+            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">expand_more</span>
+        </div>
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Priorità</label>
@@ -103,30 +109,39 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Data Inizio</label>
-        <input
-          type="date"
-          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
-          value={formData.start_date}
-          onChange={e => setFormData({...formData, start_date: e.target.value})}
-        />
+        <div className="relative">
+          <input
+            type="date"
+            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface font-bold text-sm shadow-sm"
+            value={formData.start_date}
+            onChange={e => setFormData({...formData, start_date: e.target.value})}
+          />
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">calendar_today</span>
+        </div>
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Data Scadenza</label>
-        <input
-          type="date"
-          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
-          value={formData.due_date}
-          onChange={e => setFormData({...formData, due_date: e.target.value})}
-        />
+        <div className="relative">
+          <input
+            type="date"
+            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface font-bold text-sm shadow-sm"
+            value={formData.due_date}
+            onChange={e => setFormData({...formData, due_date: e.target.value})}
+          />
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl text-rose-500">flag</span>
+        </div>
       </div>
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Orario</label>
-        <input
-          type="time"
-          className="w-full bg-surface/50 border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface"
-          value={formData.time}
-          onChange={e => setFormData({...formData, time: e.target.value})}
-        />
+        <div className="relative">
+          <input
+            type="time"
+            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface font-bold text-sm shadow-sm"
+            value={formData.time}
+            onChange={e => setFormData({...formData, time: e.target.value})}
+          />
+          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">schedule</span>
+        </div>
       </div>
       <div className="col-span-2 pt-4 flex gap-4">
         <button
