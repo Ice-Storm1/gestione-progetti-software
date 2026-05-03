@@ -7,9 +7,9 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.status === 'Completati').length;
+  const completedTasks = tasks.filter(t => t.status === 'Completato').length;
   const inProgressTasks = tasks.filter(t => t.status === 'In corso').length;
-  const blockedTasks = tasks.filter(t => t.status === 'Bloccati').length;
+  const blockedTasks = tasks.filter(t => t.status === 'Bloccato').length;
 
   const stats = [
     {
@@ -142,8 +142,8 @@ const Dashboard: React.FC = () => {
               </li>
               {tasks.slice(0, 3).map(task => (
                  <li key={task.id} className="flex gap-4 group">
-                    <div className={`relative z-10 w-10 h-10 rounded-full ${task.status === 'Completati' ? 'bg-emerald-500' : 'bg-amber-500'} flex items-center justify-center ring-4 ring-surface shadow-lg group-hover:scale-110 transition-transform`}>
-                      <span className="material-symbols-outlined text-white text-lg">{task.status === 'Completati' ? 'check' : 'pending'}</span>
+                    <div className={`relative z-10 w-10 h-10 rounded-full ${task.status === 'Completato' ? 'bg-emerald-500' : 'bg-amber-500'} flex items-center justify-center ring-4 ring-surface shadow-lg group-hover:scale-110 transition-transform`}>
+                      <span className="material-symbols-outlined text-white text-lg">{task.status === 'Completato' ? 'check' : 'pending'}</span>
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-1">

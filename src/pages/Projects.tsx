@@ -1,33 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { STATUSES } from '../constants';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Projects: React.FC = () => {
-  const { projects, searchQuery, addProject, deleteProject } = useAppContext();
+  const { projects, addProject, deleteProject } = useAppContext();
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [filterStatus, setFilterStatus] = useState('Tutti');
-  const [filterDate, setFilterDate] = useState('');
-  const [filterTime, setFilterTime] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<string>('Nome');
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Unified Filter State
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'Tutti',
+    date: '',
+    time: '',
+    sortBy: 'Nome'
+  });
+
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilters(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const filteredProjects = projects.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'Tutti' || p.status === filterStatus;
-    const matchesDate = !filterDate || p.date === filterDate;
-    const matchesTime = !filterTime || (p.time && p.time.startsWith(filterTime));
+    const matchesSearch = p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+                         p.description.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesStatus = filters.status === 'Tutti' || p.status === filters.status;
+    const matchesDate = !filters.date || p.date === filters.date;
+    const matchesTime = !filters.time || (p.time && p.time.startsWith(filters.time));
     return matchesSearch && matchesStatus && matchesDate && matchesTime;
   });
 
   const sortedProjects = [...filteredProjects].sort((a, b) => {
-    if (sortBy === 'Nome') return a.name.localeCompare(b.name);
-    if (sortBy === 'Data') return (a.date || '').localeCompare(b.date || '');
-    if (sortBy === 'Orario') return (a.time || '').localeCompare(b.time || '');
-    if (sortBy === 'Data di creazione') return (a.created_at || '').localeCompare(b.created_at || '');
-    if (sortBy === 'Stato') return a.status.localeCompare(b.status);
+    if (filters.sortBy === 'Nome') return a.name.localeCompare(b.name);
+    if (filters.sortBy === 'Data') return (a.date || '').localeCompare(b.date || '');
+    if (filters.sortBy === 'Orario') return (a.time || '').localeCompare(b.time || '');
+    if (filters.sortBy === 'Data di creazione') return (a.created_at || '').localeCompare(b.created_at || '');
+    if (filters.sortBy === 'Stato') return a.status.localeCompare(b.status);
     return 0;
   });
 
@@ -78,112 +96,141 @@ const Projects: React.FC = () => {
         </div>
       </div>
 
-      <div className="glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-6 border border-outline-variant/20 relative">
-        <div className="flex items-center gap-4">
-          <div className="relative">
+      <div className="glass-panel p-4 rounded-2xl flex items-center justify-between gap-6 border border-outline-variant/20 relative">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative flex-1 max-w-md" ref={filterRef}>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${
-                showFilters || filterStatus !== 'Tutti' || filterDate || filterTime
-                  ? 'bg-primary text-white shadow-lg'
+              className={`w-full flex items-center justify-between gap-3 px-6 py-3 rounded-2xl text-sm font-black transition-all ${
+                showFilters || filters.search || filters.status !== 'Tutti' || filters.date || filters.time
+                  ? 'bg-primary text-white shadow-xl shadow-primary/20'
                   : 'bg-surface/50 text-on-surface-variant border border-outline-variant/20 hover:bg-surface'
               }`}
             >
-              <span className="material-symbols-outlined text-lg">filter_alt</span>
-              Filtra per
-              {(filterStatus !== 'Tutti' || filterDate || filterTime) && (
-                <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-              )}
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-xl">filter_list</span>
+                <span>Filtra e Cerca</span>
+              </div>
+              <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: showFilters ? 'rotate(180deg)' : 'none' }}>expand_more</span>
             </button>
 
-            {showFilters && (
-              <div className="absolute top-full left-0 mt-3 w-80 glass-panel p-6 rounded-[2rem] shadow-2xl border border-white/40 z-50 animate-in zoom-in-95 duration-200">
-                <div className="flex flex-col gap-5">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Stato</label>
-                    <div className="relative">
-                      <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all pr-10 text-on-surface"
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full left-0 mt-4 w-96 glass-panel p-8 rounded-[2.5rem] shadow-2xl border border-white/40 z-50 overflow-hidden backdrop-blur-3xl"
+                >
+                  <div className="flex flex-col gap-6">
+                    {/* Search Input */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Cerca</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Nome o descrizione..."
+                          value={filters.search}
+                          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                          className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-10 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
+                        />
+                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                      </div>
+                    </div>
+
+                    {/* Status Select with nested feel */}
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Stato Progetto</label>
+                      <div className="relative">
+                        <select
+                          value={filters.status}
+                          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                          className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all pr-10 text-on-surface"
+                        >
+                          <option>Tutti</option>
+                          {STATUSES.map(s => <option key={s}>{s}</option>)}
+                        </select>
+                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+                      </div>
+                    </div>
+
+                    {/* Date & Time Row */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Data</label>
+                        <input
+                          type="date"
+                          value={filters.date}
+                          onChange={(e) => setFilters({ ...filters, date: e.target.value })}
+                          className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Orario</label>
+                        <input
+                          type="time"
+                          value={filters.time}
+                          onChange={(e) => setFilters({ ...filters, time: e.target.value })}
+                          className="w-full bg-surface/50 border border-outline-variant/20 rounded-2xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sort Options */}
+                    <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/10">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Ordina per</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Nome', 'Data', 'Stato', 'Data di creazione'].map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setFilters({ ...filters, sortBy: s })}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                              filters.sortBy === s
+                                ? 'bg-indigo-50 text-indigo-600 border border-indigo-200'
+                                : 'bg-surface/30 text-slate-500 border border-transparent hover:bg-surface'
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-4 border-t border-outline-variant/10">
+                      <button
+                        onClick={() => setFilters({ search: '', status: 'Tutti', date: '', time: '', sortBy: 'Nome' })}
+                        className="flex-1 py-4 text-[10px] font-black text-rose-500 hover:bg-rose-50 rounded-2xl transition-all uppercase tracking-[0.2em] border border-rose-100"
                       >
-                        <option>Tutti</option>
-                        {STATUSES.map(s => <option key={s}>{s}</option>)}
-                      </select>
-                      <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">expand_more</span>
+                        Reset
+                      </button>
+                      <button
+                        onClick={() => setShowFilters(false)}
+                        className="flex-1 py-4 text-[10px] font-black bg-on-surface text-surface rounded-2xl transition-all uppercase tracking-[0.2em] shadow-xl"
+                      >
+                        Applica
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Data</label>
-                    <input
-                      type="date"
-                      value={filterDate}
-                      onChange={(e) => setFilterDate(e.target.value)}
-                      className="w-full bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Orario</label>
-                    <input
-                      type="time"
-                      value={filterTime}
-                      onChange={(e) => setFilterTime(e.target.value)}
-                      className="w-full bg-surface/50 border border-outline-variant/20 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 transition-all text-on-surface"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={() => { setFilterStatus('Tutti'); setFilterDate(''); setFilterTime(''); }}
-                      className="flex-1 py-2 text-xs font-black text-rose-500 hover:bg-rose-50 rounded-xl transition-all uppercase tracking-widest border border-rose-100"
-                    >
-                      Resetta
-                    </button>
-                    <button
-                      onClick={() => setShowFilters(false)}
-                      className="flex-1 py-2 text-xs font-black bg-on-surface text-surface rounded-xl transition-all uppercase tracking-widest shadow-md"
-                    >
-                      Applica
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-surface/50 p-1 rounded-xl shadow-inner">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 bg-surface/50 p-1.5 rounded-2xl shadow-inner border border-outline-variant/10">
             <button
               onClick={() => setView('grid')}
-              className={`p-2 rounded-lg transition-all ${view === 'grid' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant'}`}
+              className={`p-2.5 rounded-xl transition-all ${view === 'grid' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
-              <span className="material-symbols-outlined text-[20px]">grid_view</span>
+              <span className="material-symbols-outlined text-[22px]">grid_view</span>
             </button>
             <button
               onClick={() => setView('list')}
-              className={`p-2 rounded-lg transition-all ${view === 'list' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant'}`}
+              className={`p-2.5 rounded-xl transition-all ${view === 'list' ? 'bg-surface shadow-md text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
-              <span className="material-symbols-outlined text-[20px]">view_list</span>
+              <span className="material-symbols-outlined text-[22px]">view_list</span>
             </button>
-          </div>
-
-          <div className="relative group">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none glass-panel px-6 py-2 rounded-xl text-sm font-bold border border-outline-variant/20 bg-surface/50 outline-none focus:ring-2 focus:ring-primary/20 text-on-surface-variant pr-10 cursor-pointer"
-            >
-              <option disabled>Filtra per</option>
-              <option>Nome</option>
-              <option>Data</option>
-              <option>Orario</option>
-              <option>Data di creazione</option>
-              <option>Stato</option>
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">filter_list</span>
           </div>
         </div>
       </div>

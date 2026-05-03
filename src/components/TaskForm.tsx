@@ -16,8 +16,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
     description: taskToEdit?.description || '',
     status: taskToEdit?.status || 'Idea',
     priority: taskToEdit?.priority || 'Media',
-    start_date: taskToEdit?.start_date || taskToEdit?.due_date || new Date().toISOString().split('T')[0],
-    due_date: taskToEdit?.due_date || new Date().toISOString().split('T')[0],
+    start_date: taskToEdit?.start_date || taskToEdit?.due_date || (taskToEdit?.id ? '' : new Date().toISOString().split('T')[0]),
+    due_date: taskToEdit?.due_date || (taskToEdit?.id ? '' : new Date().toISOString().split('T')[0]),
     time: taskToEdit?.time || '12:00',
     risk: taskToEdit?.risk || 0,
     project_id: taskToEdit?.project_id || projectId || (projects.length > 0 ? projects[0].id : '')
@@ -27,7 +27,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      if (taskToEdit) {
+      if (taskToEdit && taskToEdit.id) {
         await updateTask({ ...taskToEdit, ...formData });
       } else {
         await addTask(formData);
@@ -152,7 +152,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
           disabled={isSubmitting}
           className="flex-1 py-4 rounded-2xl bg-primary text-white font-bold shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-50"
         >
-          {isSubmitting ? 'Salvataggio...' : (taskToEdit ? 'Aggiorna Task' : 'Crea Task')}
+          {isSubmitting ? 'Salvataggio...' : (taskToEdit && taskToEdit.id ? 'Aggiorna Task' : 'Crea Task')}
         </button>
       </div>
     </form>

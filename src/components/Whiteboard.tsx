@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { WhiteboardElement } from '../context/AppContext';
+import rough from 'roughjs';
 
 interface WhiteboardProps {
   elements: WhiteboardElement[];
@@ -12,6 +13,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
   const [tool, setTool] = useState<'pen' | 'eraser' | 'rect' | 'circle'>('pen');
   const [color, setColor] = useState('#0058be');
   const [localElements, setLocalElements] = useState<WhiteboardElement[]>(elements);
+  const [currentPoints, setCurrentPoints] = useState<{x: number, y: number}[]>([]);
+  const [startPoint, setStartPoint] = useState<{x: number, y: number} | null>(null);
 
   useEffect(() => {
     setLocalElements(elements);
@@ -20,58 +23,55 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const rc = rough.canvas(canvas);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Resize canvas
-    const resize = () => {
-      canvas.width = canvas.parentElement?.clientWidth || 800;
-      canvas.height = canvas.parentElement?.clientHeight || 600;
-      redraw();
-    };
-
     const redraw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
 
       // Draw grid
       ctx.strokeStyle = 'rgba(0,0,0,0.03)';
       ctx.lineWidth = 1;
-      for (let i = 0; i < canvas.width; i += 20) {
+      for (let i = 0; i < canvas.width; i += 40) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
       }
-      for (let i = 0; i < canvas.height; i += 20) {
+      for (let i = 0; i < canvas.height; i += 40) {
         ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
       }
 
       localElements.forEach(el => {
         try {
           const data = JSON.parse(el.text);
-          ctx.strokeStyle = data.color || '#000';
-          ctx.lineWidth = data.width || 2;
+          const isEraser = data.color === '#ffffff';
+
+          const roughOptions: any = {
+            stroke: data.color,
+            strokeWidth: data.width || 2,
+            roughness: isEraser ? 0 : 1.2,
+            bowing: isEraser ? 0 : 1,
+            seed: parseInt(el.id) % 1000,
+          };
 
           if (el.element_type === 'path') {
-            ctx.beginPath();
-            data.points.forEach((p: any, i: number) => {
-              if (i === 0) ctx.moveTo(p.x, p.y);
-              else ctx.lineTo(p.x, p.y);
-            });
-            ctx.stroke();
+            if (data.points.length > 1) {
+               rc.linearPath(data.points.map((p: any) => [p.x, p.y]), roughOptions);
+            }
           } else if (el.element_type === 'rect') {
-            ctx.strokeRect(data.x, data.y, data.w, data.h);
+            rc.rectangle(data.x, data.y, data.w, data.h, roughOptions);
           } else if (el.element_type === 'circle') {
-            ctx.beginPath();
-            ctx.arc(data.x, data.y, data.r, 0, Math.PI * 2);
-            ctx.stroke();
+            const centerX = data.x + data.w / 2;
+            const centerY = data.y + data.h / 2;
+            const radius = Math.sqrt(data.w ** 2 + data.h ** 2) / 2;
+            rc.circle(centerX, centerY, radius * 2, roughOptions);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("Redraw error", e);
+        }
       });
     };
 
-    resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
+    redraw();
   }, [localElements]);
 
   const startDrawing = (e: React.MouseEvent) => {
@@ -79,39 +79,105 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
     if (!rect) return;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
     setIsDrawing(true);
+    setStartPoint({ x, y });
 
     if (tool === 'pen' || tool === 'eraser') {
-      const newEl: WhiteboardElement = {
-        id: Date.now().toString(),
-        x: 0, y: 0,
-        element_type: 'path',
-        text: JSON.stringify({ color: tool === 'eraser' ? '#ffffff' : color, width: tool === 'eraser' ? 20 : 3, points: [{ x, y }] })
-      };
-      setLocalElements([...localElements, newEl]);
+      setCurrentPoints([{ x, y }]);
+      const ctx = canvasRef.current?.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
     }
   };
 
   const draw = (e: React.MouseEvent) => {
-    if (!isDrawing) return;
+    if (!isDrawing || !startPoint) return;
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx) return;
+
     if (tool === 'pen' || tool === 'eraser') {
-      const last = localElements[localElements.length - 1];
-      const data = JSON.parse(last.text);
-      data.points.push({ x, y });
-      const updated = [...localElements];
-      updated[updated.length - 1] = { ...last, text: JSON.stringify(data) };
-      setLocalElements(updated);
+      setCurrentPoints(prev => [...prev, { x, y }]);
+      ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+      ctx.lineWidth = tool === 'eraser' ? 25 : 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    } else {
+      // Shape preview (optional, but let's keep it simple and just draw on stop for now
+      // or we can add a basic preview)
     }
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (e: React.MouseEvent) => {
+    if (!isDrawing || !startPoint) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    let newEl: WhiteboardElement | null = null;
+
+    if (tool === 'pen' || tool === 'eraser') {
+      newEl = {
+        id: Date.now().toString(),
+        x: 0, y: 0,
+        element_type: 'path',
+        text: JSON.stringify({
+          color: tool === 'eraser' ? '#ffffff' : color,
+          width: tool === 'eraser' ? 25 : 2,
+          points: [...currentPoints, { x, y }]
+        })
+      };
+    } else if (tool === 'rect') {
+      newEl = {
+        id: Date.now().toString(),
+        x: Math.min(startPoint.x, x),
+        y: Math.min(startPoint.y, y),
+        element_type: 'rect',
+        text: JSON.stringify({
+          color: color,
+          width: 2,
+          x: Math.min(startPoint.x, x),
+          y: Math.min(startPoint.y, y),
+          w: Math.abs(x - startPoint.x),
+          h: Math.abs(y - startPoint.y)
+        })
+      };
+    } else if (tool === 'circle') {
+       newEl = {
+        id: Date.now().toString(),
+        x: Math.min(startPoint.x, x),
+        y: Math.min(startPoint.y, y),
+        element_type: 'circle',
+        text: JSON.stringify({
+          color: color,
+          width: 2,
+          x: Math.min(startPoint.x, x),
+          y: Math.min(startPoint.y, y),
+          w: Math.abs(x - startPoint.x),
+          h: Math.abs(y - startPoint.y)
+        })
+      };
+    }
+
+    if (newEl) {
+      const updated = [...localElements, newEl];
+      setLocalElements(updated);
+      onSave(updated);
+    }
+
     setIsDrawing(false);
-    onSave(localElements);
+    setStartPoint(null);
+    setCurrentPoints([]);
   };
 
   const clear = () => {

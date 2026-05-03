@@ -5,44 +5,12 @@ import { X, CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 const Notifications: React.FC = () => {
   const { notifications, removeNotification } = useAppContext();
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-
-  const filteredNotifications = notifications.filter(n => {
-    if (filter === 'all') return true;
-    return n.status === filter;
-  });
 
   return (
     <div className="fixed top-8 right-8 z-[100] flex flex-col gap-4 w-96 pointer-events-none">
-      {/* Filter Tabs */}
-      <AnimatePresence>
-        {notifications.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="pointer-events-auto glass-panel p-1.5 rounded-2xl border border-white/40 shadow-2xl self-end flex gap-1 bg-white/70 dark:bg-slate-800/70 backdrop-blur-3xl"
-          >
-            {(['all', 'active', 'completed'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                  filter === f
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                    : 'text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400'
-                }`}
-              >
-                {f === 'all' ? 'Tutti' : f === 'active' ? 'Attivi' : 'Completati'}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
-          {filteredNotifications.map((notification) => (
+          {notifications.map((notification) => (
             <motion.div
               layout
               key={notification.id}

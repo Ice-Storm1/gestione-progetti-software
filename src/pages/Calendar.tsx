@@ -37,7 +37,11 @@ const Calendar: React.FC = () => {
   const handleDayClick = (day: number, current: boolean, monthOffset: number) => {
     if (!current) return;
     const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + monthOffset, day);
-    setSelectedDate(date.toISOString().split('T')[0]);
+    // Use local date string to avoid timezone shifts
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${d}`);
   };
 
   const changeMonth = (offset: number) => {
