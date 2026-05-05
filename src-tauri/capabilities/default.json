@@ -1,0 +1,10 @@
+{
+  "identifier": "default",
+  "description": "Main application capability",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "protype:allow-api"
+  ]
+}
