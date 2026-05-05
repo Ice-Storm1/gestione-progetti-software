@@ -25,6 +25,16 @@ const TaskList: React.FC<TaskListProps> = ({ projectId }) => {
 
   return (
     <div className={`space-y-4 ${!projectId ? 'p-8' : ''} animate-in fade-in duration-500`}>
+      {!projectId && (
+        <div className="flex items-center justify-between mb-8">
+           <h3 className="text-3xl font-black text-on-surface tracking-tight">Cronoprogramma Globale</h3>
+           <div className="flex gap-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant bg-surface/40 p-3 rounded-2xl border border-outline-variant/10">
+             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Completato</span>
+             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> In Corso</span>
+             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Bloccato</span>
+           </div>
+        </div>
+      )}
       <div className="glass-panel rounded-[2rem] overflow-hidden border border-outline-variant/10 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">

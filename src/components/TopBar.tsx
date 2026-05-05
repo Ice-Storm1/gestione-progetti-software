@@ -28,7 +28,7 @@ const TopBar: React.FC<TopBarProps> = () => {
   const getPageTitle = () => {
     if (location.pathname === '/dashboard') return 'Dashboard';
     if (location.pathname === '/projects') return 'Progetti';
-    if (location.pathname === '/kanban') return 'Tasks';
+    if (location.pathname === '/kanban') return 'Roadmap';
     if (location.pathname === '/calendar') return 'Calendario';
     if (location.pathname === '/settings') return 'Impostazioni';
     if (location.pathname === '/support') return 'Supporto';

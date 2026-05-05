@@ -77,7 +77,9 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
       localElements.forEach(el => drawElement(rc, el));
     };
 
-    redraw();
+    if (!isDrawing || tool === 'pen' || tool === 'eraser') {
+      redraw();
+    }
     return () => window.removeEventListener('resize', resizeCanvas);
   }, [localElements]);
 

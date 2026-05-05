@@ -4,6 +4,7 @@ import Modal from '../components/Modal';
 import TaskForm from '../components/TaskForm';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from '../components/CustomSelect';
 
 const Calendar: React.FC = () => {
   const { tasks, updateTask } = useAppContext();
@@ -105,7 +106,25 @@ const Calendar: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 relative z-50">
+        <div className="flex items-center gap-6 relative z-50">
+          <div className="flex items-center gap-2">
+            <CustomSelect
+              value={currentDate.getMonth().toString()}
+              onChange={val => setCurrentDate(new Date(currentDate.getFullYear(), parseInt(val), 1))}
+              options={monthNames.map((name, i) => ({ value: i.toString(), label: name }))}
+              className="w-48"
+            />
+            <CustomSelect
+              value={currentDate.getFullYear().toString()}
+              onChange={val => setCurrentDate(new Date(parseInt(val), currentDate.getMonth(), 1))}
+              options={[...Array(11)].map((_, i) => {
+                const year = new Date().getFullYear() - 5 + i;
+                return { value: year.toString(), label: year.toString() };
+              })}
+              className="w-32"
+            />
+          </div>
+
           <div className="flex bg-surface-container-low dark:bg-slate-900/50 p-1 rounded-xl border border-outline-variant/5 shadow-inner">
             <button
               onClick={() => changeMonth(-1)}
