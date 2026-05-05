@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { STATUSES } from '../constants';
+import CustomSelect from './CustomSelect';
 
 interface TaskFormProps {
   onCancel: () => void;
@@ -61,33 +62,18 @@ const TaskForm: React.FC<TaskFormProps> = ({ onCancel, projectId, taskToEdit }) 
           onChange={e => setFormData({...formData, description: e.target.value})}
         />
       </div>
-      <div>
-        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Progetto</label>
-        <div className="relative">
-          <select
-            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface appearance-none font-bold text-sm shadow-sm"
-            value={formData.project_id}
-            onChange={e => setFormData({...formData, project_id: e.target.value})}
-            disabled={!!projectId && !taskToEdit}
-          >
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">expand_more</span>
-        </div>
-      </div>
-      <div>
-        <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Stato</label>
-        <div className="relative">
-          <select
-            className="w-full bg-surface/50 border border-outline-variant/30 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-on-surface appearance-none font-bold text-sm shadow-sm"
-            value={formData.status}
-            onChange={e => setFormData({...formData, status: e.target.value})}
-          >
-            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-xl">expand_more</span>
-        </div>
-      </div>
+      <CustomSelect
+        label="Progetto"
+        value={formData.project_id}
+        onChange={val => setFormData({...formData, project_id: val})}
+        options={projects.map(p => ({ value: p.id, label: p.name }))}
+      />
+      <CustomSelect
+        label="Stato"
+        value={formData.status}
+        onChange={val => setFormData({...formData, status: val})}
+        options={STATUSES}
+      />
       <div>
         <label className="block text-[10px] font-black text-on-surface-variant mb-1.5 uppercase tracking-widest px-1">Priorità</label>
         <div className="flex items-center gap-2 mt-1">

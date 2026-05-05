@@ -10,6 +10,28 @@ interface WhiteboardProps {
 const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
+
+  const drawElement = (rc: any, el: WhiteboardElement) => {
+    try {
+      const data = JSON.parse(el.text);
+      const isEraser = data.color === '#ffffff';
+      const options = {
+        stroke: data.color,
+        strokeWidth: data.width || 2,
+        roughness: isEraser ? 0 : 1.2,
+        bowing: isEraser ? 0 : 1,
+        seed: (parseInt(el.id) || 0) % 1000,
+      };
+
+      if (el.element_type === 'path' && data.points?.length > 1) {
+        rc.linearPath(data.points.map((p: any) => [p.x, p.y]), options);
+      } else if (el.element_type === 'rect') {
+        rc.rectangle(data.x, data.y, data.w, data.h, options);
+      } else if (el.element_type === 'circle') {
+        rc.ellipse(data.x + data.w / 2, data.y + data.h / 2, data.w, data.h, options);
+      }
+    } catch (e) {}
+  };
   const [tool, setTool] = useState<'pen' | 'eraser' | 'rect' | 'circle'>('pen');
   const [color, setColor] = useState('#0058be');
   const [localElements, setLocalElements] = useState<WhiteboardElement[]>(elements);
@@ -52,32 +74,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
         ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
       }
 
-      localElements.forEach(el => {
-        try {
-          const data = JSON.parse(el.text);
-          const isEraser = data.color === '#ffffff';
-
-          const roughOptions: any = {
-            stroke: data.color,
-            strokeWidth: data.width || 2,
-            roughness: isEraser ? 0 : 1.2,
-            bowing: isEraser ? 0 : 1,
-            seed: parseInt(el.id) % 1000,
-          };
-
-          if (el.element_type === 'path') {
-            if (data.points.length > 1) {
-               rc.linearPath(data.points.map((p: any) => [p.x, p.y]), roughOptions);
-            }
-          } else if (el.element_type === 'rect') {
-            rc.rectangle(data.x, data.y, data.w, data.h, roughOptions);
-          } else if (el.element_type === 'circle') {
-            rc.ellipse(data.x + data.w / 2, data.y + data.h / 2, data.w, data.h, roughOptions);
-          }
-        } catch (e) {
-          console.error("Redraw error", e);
-        }
-      });
+      localElements.forEach(el => drawElement(rc, el));
     };
 
     redraw();
@@ -126,16 +123,14 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rc = rough.canvas(canvas);
-      const roughOptions: any = {
+      const options = {
         stroke: color,
         strokeWidth: 2,
         roughness: 1.2,
+        bowing: 1,
         seed: 1,
       };
 
-      // We need to redraw everything + the current preview
-      // But clearing everything and redrawing is heavy on every mouse move
-      // Simple optimization: only redraw on shape tools
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -150,38 +145,18 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
         }
 
         // Redraw existing
-        localElements.forEach(el => {
-          try {
-            const data = JSON.parse(el.text);
-            const isEraser = data.color === '#ffffff';
-            const elOptions = {
-              ...roughOptions,
-              stroke: data.color,
-              strokeWidth: data.width || 2,
-              roughness: isEraser ? 0 : 1.2,
-              seed: parseInt(el.id) % 1000,
-            };
-            if (el.element_type === 'path') rc.linearPath(data.points.map((p: any) => [p.x, p.y]), elOptions);
-            else if (el.element_type === 'rect') rc.rectangle(data.x, data.y, data.w, data.h, elOptions);
-            else if (el.element_type === 'circle') {
-              const cx = data.x + data.w / 2; const cy = data.y + data.h / 2;
-              const r = Math.sqrt(data.w ** 2 + data.h ** 2) / 2;
-              rc.circle(cx, cy, r * 2, elOptions);
-            }
-          } catch(e) {}
-        });
+        localElements.forEach(el => drawElement(rc, el));
 
         // Draw preview
+        const sx = Math.min(startPoint.x, x);
+        const sy = Math.min(startPoint.y, y);
+        const sw = Math.abs(x - startPoint.x);
+        const sh = Math.abs(y - startPoint.y);
+
         if (tool === 'rect') {
-          rc.rectangle(Math.min(startPoint.x, x), Math.min(startPoint.y, y), Math.abs(x - startPoint.x), Math.abs(y - startPoint.y), roughOptions);
+          rc.rectangle(sx, sy, sw, sh, options);
         } else if (tool === 'circle') {
-          rc.ellipse(
-            Math.min(startPoint.x, x) + Math.abs(x - startPoint.x) / 2,
-            Math.min(startPoint.y, y) + Math.abs(y - startPoint.y) / 2,
-            Math.abs(x - startPoint.x),
-            Math.abs(y - startPoint.y),
-            roughOptions
-          );
+          rc.ellipse(sx + sw / 2, sy + sh / 2, sw, sh, options);
         }
       }
     }
@@ -208,35 +183,41 @@ const Whiteboard: React.FC<WhiteboardProps> = ({ elements, onSave }) => {
         })
       };
     } else if (tool === 'rect') {
-      newEl = {
-        id: Date.now().toString(),
-        x: Math.min(startPoint.x, x),
-        y: Math.min(startPoint.y, y),
-        element_type: 'rect',
-        text: JSON.stringify({
-          color: color,
-          width: 2,
-          x: Math.min(startPoint.x, x),
-          y: Math.min(startPoint.y, y),
-          w: Math.abs(x - startPoint.x),
-          h: Math.abs(y - startPoint.y)
-        })
-      };
+      const sx = Math.min(startPoint.x, x);
+      const sy = Math.min(startPoint.y, y);
+      const sw = Math.abs(x - startPoint.x);
+      const sh = Math.abs(y - startPoint.y);
+      if (sw > 2 && sh > 2) {
+        newEl = {
+          id: Date.now().toString(),
+          x: sx, y: sy,
+          element_type: 'rect',
+          text: JSON.stringify({
+            color: color,
+            width: 2,
+            x: sx, y: sy,
+            w: sw, h: sh
+          })
+        };
+      }
     } else if (tool === 'circle') {
-       newEl = {
-        id: Date.now().toString(),
-        x: Math.min(startPoint.x, x),
-        y: Math.min(startPoint.y, y),
-        element_type: 'circle',
-        text: JSON.stringify({
-          color: color,
-          width: 2,
-          x: Math.min(startPoint.x, x),
-          y: Math.min(startPoint.y, y),
-          w: Math.abs(x - startPoint.x),
-          h: Math.abs(y - startPoint.y)
-        })
-      };
+      const sx = Math.min(startPoint.x, x);
+      const sy = Math.min(startPoint.y, y);
+      const sw = Math.abs(x - startPoint.x);
+      const sh = Math.abs(y - startPoint.y);
+      if (sw > 2 && sh > 2) {
+        newEl = {
+          id: Date.now().toString(),
+          x: sx, y: sy,
+          element_type: 'circle',
+          text: JSON.stringify({
+            color: color,
+            width: 2,
+            x: sx, y: sy,
+            w: sw, h: sh
+          })
+        };
+      }
     }
 
     if (newEl) {

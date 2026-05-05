@@ -6,6 +6,7 @@ import Whiteboard from '../components/Whiteboard';
 import { STATUSES } from '../constants';
 import Modal from '../components/Modal';
 import TaskForm from '../components/TaskForm';
+import CustomSelect from '../components/CustomSelect';
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -87,16 +88,12 @@ const ProjectDetail: React.FC = () => {
             <span className="material-symbols-outlined text-lg">delete</span>
             Elimina
           </button>
-          <div className="relative">
-            <select
-              value={project.status}
-              onChange={(e) => handleUpdate({ status: e.target.value })}
-              className="appearance-none px-8 py-3 rounded-xl bg-surface border-2 border-outline-variant/20 text-on-surface font-black hover:border-primary transition-all active:scale-95 shadow-sm pr-12 outline-none cursor-pointer"
-            >
-              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-          </div>
+          <CustomSelect
+            value={project.status}
+            onChange={val => handleUpdate({ status: val })}
+            options={STATUSES}
+            className="min-w-[200px]"
+          />
         </div>
       </header>
 

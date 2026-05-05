@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { STATUSES } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
+import CustomSelect from '../components/CustomSelect';
 
 const Projects: React.FC = () => {
   const { projects, addProject, deleteProject, searchQuery } = useAppContext();
@@ -98,7 +99,7 @@ const Projects: React.FC = () => {
       </div>
 
       <div className="glass-panel p-4 rounded-2xl flex items-center justify-between gap-6 border border-outline-variant/20 relative">
-        <div className="flex items-center gap-4 flex-1">
+        <div className="flex items-center gap-4 flex-1 z-50">
           <div className="relative flex-1 max-w-md" ref={filterRef}>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -140,20 +141,12 @@ const Projects: React.FC = () => {
                     </div>
 
                     {/* Status Select with nested feel */}
-                    <div className="flex flex-col gap-2">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Stato Progetto</label>
-                      <div className="relative">
-                        <select
-                          value={filters.status}
-                          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                          className="w-full appearance-none bg-surface/50 border border-outline-variant/20 rounded-2xl px-5 py-4 text-sm font-black outline-none focus:ring-4 focus:ring-primary/10 transition-all pr-12 text-on-surface shadow-sm"
-                        >
-                          <option>Tutti</option>
-                          {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-xl">expand_more</span>
-                      </div>
-                    </div>
+                    <CustomSelect
+                      label="Stato Progetto"
+                      value={filters.status}
+                      onChange={val => setFilters({ ...filters, status: val })}
+                      options={['Tutti', ...STATUSES]}
+                    />
 
                     {/* Date & Time Row */}
                     <div className="grid grid-cols-2 gap-4">

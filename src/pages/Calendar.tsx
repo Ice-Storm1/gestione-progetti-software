@@ -83,6 +83,13 @@ const Calendar: React.FC = () => {
     }
   };
 
+  const formatDateLocal = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   return (
     <div className="p-8 space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
       <header className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white dark:bg-slate-800/50 p-6 rounded-[2rem] border border-outline-variant/10 shadow-sm">
@@ -98,8 +105,8 @@ const Calendar: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex bg-surface-container-low dark:bg-slate-900/50 p-1 rounded-xl border border-outline-variant/5">
+        <div className="flex items-center gap-3 relative z-50">
+          <div className="flex bg-surface-container-low dark:bg-slate-900/50 p-1 rounded-xl border border-outline-variant/5 shadow-inner">
             <button
               onClick={() => changeMonth(-1)}
               className="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-all text-on-surface-variant hover:text-primary active:scale-90"
@@ -144,8 +151,8 @@ const Calendar: React.FC = () => {
         <div className="grid grid-cols-7 min-h-[750px] bg-outline-variant/5">
           {days.map((d, i) => {
             const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + d.monthOffset, d.day);
-            const dayStr = date.toISOString().split('T')[0];
-            const isToday = dayStr === new Date().toISOString().split('T')[0];
+            const dayStr = formatDateLocal(date);
+            const isToday = dayStr === formatDateLocal(new Date());
 
             // Filter tasks active on this day
             const dayTasks = tasks.filter(t => {
